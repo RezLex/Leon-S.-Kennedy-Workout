@@ -405,44 +405,221 @@
 
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ── UTILITY BAR ── */
-        .utility-bar {
+        /* ── FINISH DAY BTN ── */
+        .finish-day-wrap {
+            display: none;
+            margin-bottom: 8px;
+        }
+
+        .finish-day-wrap.visible { display: block; }
+
+        .finish-day-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            background: var(--green);
+            color: #fff;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            box-shadow: 0 4px 14px rgba(46, 204, 113, 0.3);
+        }
+
+        .finish-day-btn:hover { opacity: 0.88; }
+        .finish-day-btn:active { transform: scale(0.98); }
+
+        /* ── HEADER TIMER BTN ── */
+        .header-timer-btn {
+            position: absolute;
+            top: 50%;
+            right: 14px;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            transition: color 0.2s;
+        }
+
+        .header-timer-btn:hover { color: var(--accent); }
+        .header-timer-btn.running { color: var(--accent); }
+
+        /* ── TIMER ── */
+
+        .timer-body {
+            display: none;
+        }
+
+        .timer-body.open {
+            display: flex;
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 200;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+            padding: 32px 24px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .timer-close-btn {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .timer-close-btn:hover { color: var(--text); }
+
+        .timer-display {
+            font-size: 7rem;
+            font-weight: 800;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.04em;
+            color: var(--text);
+            transition: color 0.3s;
+            line-height: 1;
+        }
+
+        .timer-display.running { color: var(--accent); }
+        .timer-display.done { color: var(--green); }
+
+        .timer-presets {
             display: flex;
             gap: 10px;
-            padding: 20px 12px 8px;
-            justify-content: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .timer-preset-btn {
+            flex: 1;
+            padding: 12px 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: none;
+            color: var(--muted);
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .timer-preset-btn:hover,
+        .timer-preset-btn.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(230,57,70,0.08);
+        }
+
+        .timer-custom-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .timer-custom-input {
+            flex: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            color: var(--text);
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .timer-custom-input:focus { border-color: var(--accent); }
+        .timer-custom-input::placeholder { color: var(--muted); }
+
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .timer-start-btn {
+            flex: 2;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: var(--accent);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .timer-start-btn:hover { opacity: 0.85; }
+
+        .timer-reset-btn {
+            flex: 1;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: none;
+            color: var(--muted);
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .timer-reset-btn:hover { border-color: var(--muted); color: var(--text); }
+
+        /* ── UTILITY BAR ── */
+        .utility-bar {
+            padding: 20px 12px 24px;
+            border-top: 1px solid var(--border);
+            margin-top: 8px;
         }
 
         .util-btn {
-            padding: 9px 18px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            font-size: 0.75rem;
+            width: 100%;
+            padding: 11px;
+            border-radius: 10px;
+            border: 1px solid rgba(230, 126, 34, 0.25);
+            background: rgba(230, 126, 34, 0.04);
+            font-size: 0.76rem;
             font-weight: 700;
             letter-spacing: 0.07em;
             text-transform: uppercase;
             cursor: pointer;
             transition: all 0.2s;
-        }
-
-        .util-btn-export {
-            background: none;
-            color: var(--muted);
-        }
-
-        .util-btn-export:hover {
-            border-color: var(--accent2);
-            color: var(--accent2);
-        }
-
-        .util-btn-origin {
-            background: none;
             color: var(--muted);
         }
 
         .util-btn-origin:hover {
             border-color: #e67e22;
             color: #e67e22;
+            background: rgba(230, 126, 34, 0.1);
         }
 
         /* ── SEARCH / DELETE ── */
@@ -527,26 +704,57 @@
 
         /* ── RESET ALL ── */
         .reset-wrap {
-            text-align: center;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         .reset-btn {
-            background: none;
-            border: 1px solid var(--border);
+            width: 100%;
+            background: rgba(230, 57, 70, 0.05);
+            border: 1px solid rgba(230, 57, 70, 0.2);
             color: var(--muted);
-            font-size: 0.75rem;
-            padding: 8px 20px;
-            border-radius: 20px;
+            font-size: 0.78rem;
+            padding: 11px;
+            border-radius: 10px;
             cursor: pointer;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.07em;
             text-transform: uppercase;
+            font-weight: 700;
             transition: all 0.2s;
         }
 
         .reset-btn:hover {
             border-color: var(--accent);
             color: var(--accent);
+            background: rgba(230, 57, 70, 0.1);
+        }
+
+        /* ── SAVE INDICATOR ── */
+        .save-indicator {
+            position: fixed;
+            top: 80px;
+            right: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 5px 12px 5px 8px;
+            font-size: 0.72rem;
+            color: var(--muted);
+            display: none;
+            align-items: center;
+            gap: 7px;
+            z-index: 150;
+        }
+
+        .save-indicator.visible { display: flex; }
+
+        .save-mini-spinner {
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            flex-shrink: 0;
         }
 
         /* ── TOAST ── */
@@ -581,6 +789,10 @@
     <header>
         <h1>Leon S. Kennedy</h1>
         <p>Plan de Entrenamiento</p>
+        <button class="header-timer-btn" id="header-timer-btn" onclick="toggleTimerSection()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="header-timer-time">1:00</span>
+        </button>
     </header>
 
     <div class="tabs" role="tablist">
@@ -590,6 +802,25 @@
     </div>
 
     <div class="spinner-wrap" id="spinner"><div class="spinner"></div></div>
+
+    <div class="timer-body" id="timer-body">
+        <button class="timer-close-btn" onclick="toggleTimerSection()">✕</button>
+        <div class="timer-display" id="timer-display">1:00</div>
+        <div class="timer-presets">
+            <button class="timer-preset-btn" onclick="setTimer(30)">30s</button>
+            <button class="timer-preset-btn" onclick="setTimer(40)">40s</button>
+            <button class="timer-preset-btn" onclick="setTimer(60)">1m</button>
+            <button class="timer-preset-btn" onclick="setTimer(120)">2m</button>
+        </div>
+        <div class="timer-custom-row">
+            <input class="timer-custom-input" id="timer-custom-input" type="number" min="5" max="600" placeholder="Segundos personalizados">
+            <button class="timer-preset-btn" onclick="setCustomTimer()" style="flex:0;padding:8px 14px">Set</button>
+        </div>
+        <div class="timer-controls">
+            <button class="timer-start-btn" id="timer-start-btn" onclick="startPauseTimer()">Iniciar</button>
+            <button class="timer-reset-btn" onclick="resetTimer()">Reset</button>
+        </div>
+    </div>
 
     <div class="day-panel active" id="day-1">
         <div class="progress-wrap">
@@ -612,6 +843,9 @@
         </div>
         <div class="add-exercise-wrap">
             <button class="add-exercise-btn" onclick="showAddForm(1)">+ Agregar ejercicio</button>
+        </div>
+        <div class="finish-day-wrap" id="finish-wrap-1">
+            <button class="finish-day-btn" onclick="finishDay(1)">Finalizar día 1</button>
         </div>
         <div class="reset-wrap">
             <button class="reset-btn" onclick="resetDay(1)">Reiniciar día 1</button>
@@ -640,6 +874,9 @@
         <div class="add-exercise-wrap">
             <button class="add-exercise-btn" onclick="showAddForm(2)">+ Agregar ejercicio</button>
         </div>
+        <div class="finish-day-wrap" id="finish-wrap-2">
+            <button class="finish-day-btn" onclick="finishDay(2)">Finalizar día 2</button>
+        </div>
         <div class="reset-wrap">
             <button class="reset-btn" onclick="resetDay(2)">Reiniciar día 2</button>
         </div>
@@ -667,14 +904,21 @@
         <div class="add-exercise-wrap">
             <button class="add-exercise-btn" onclick="showAddForm(3)">+ Agregar ejercicio</button>
         </div>
+        <div class="finish-day-wrap" id="finish-wrap-3">
+            <button class="finish-day-btn" onclick="finishDay(3)">Finalizar día 3</button>
+        </div>
         <div class="reset-wrap">
             <button class="reset-btn" onclick="resetDay(3)">Reiniciar día 3</button>
         </div>
     </div>
 
     <div class="utility-bar">
-        <button class="util-btn util-btn-export" onclick="exportCSV()">Exportar data.csv</button>
-        <button class="util-btn util-btn-origin" onclick="resetToOrigin()">Restaurar originales</button>
+<button class="util-btn util-btn-origin" onclick="resetToOrigin()">Restaurar originales</button>
+    </div>
+
+    <div class="save-indicator" id="save-indicator">
+        <div class="save-mini-spinner"></div>
+        <span>Guardando…</span>
     </div>
 
     <div class="toast" id="toast"></div>
@@ -905,6 +1149,9 @@
             } else {
                 badge.classList.remove('visible');
             }
+
+            const finishWrap = document.getElementById(`finish-wrap-${day}`);
+            if (finishWrap) finishWrap.classList.toggle('visible', done >= 1);
         }
 
         /* ── EDIT ── */
@@ -979,6 +1226,9 @@
             showToast('Día ' + day + ' reiniciado');
         }
 
+        function showSaveIndicator() { document.getElementById('save-indicator').classList.add('visible'); }
+        function hideSaveIndicator() { document.getElementById('save-indicator').classList.remove('visible'); }
+
         /* ── TOAST ── */
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -1030,6 +1280,7 @@
                 const peso = pesoEl.classList.contains('empty') ? '' : pesoEl.textContent;
                 exercises.push({ dia, id, nombre, series, peso });
             });
+            showSaveIndicator();
             try {
                 const r = await fetch(`${FIREBASE_URL}/rutina.json`, {
                     method: 'PUT',
@@ -1039,6 +1290,8 @@
                 showToast('Guardado ✓');
             } catch (err) {
                 showToast('Error al guardar: ' + err.message);
+            } finally {
+                hideSaveIndicator();
             }
         }
 
@@ -1109,8 +1362,222 @@
             showToast('Datos restaurados al original');
         }
 
-        // INICIAR DESCARGA Y RENDERIZADO
+        /* ── FINISH DAY + HISTORY ── */
+        async function saveWorkoutHistory(day) {
+            const done = [...document.querySelectorAll(`#exercises-${day} .exercise-card.done`)];
+            if (!done.length) return;
+            const ejercicios = done.map(card => {
+                const fields = card.querySelectorAll('.field-group');
+                const pesoEl = fields[1].querySelector('.field-value');
+                return {
+                    nombre: card.querySelector('.exercise-name').textContent,
+                    series: fields[0].querySelector('.field-value').textContent,
+                    peso: pesoEl.classList.contains('empty') ? 'Peso corporal' : pesoEl.textContent
+                };
+            });
+            showSaveIndicator();
+            try {
+                await fetch(`${FIREBASE_URL}/historial.json`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        fecha: new Date().toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' }),
+                        timestamp: Date.now(),
+                        dia: day,
+                        ejercicios
+                    })
+                });
+            } finally {
+                hideSaveIndicator();
+            }
+        }
+
+        async function finishDay(day) {
+            if (!confirm(`¿Finalizar día ${day}? Se guardará el progreso y se limpiarán los checks.`)) return;
+            try {
+                await saveWorkoutHistory(day);
+                showToast(`Día ${day} guardado ✓`);
+            } catch (err) {
+                showToast('Error al guardar historial');
+                return;
+            }
+            resetDay(day);
+        }
+
+        /* ── TIMER ── */
+        function playTimerSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                [0, 0.18, 0.36].forEach(offset => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.value = 880;
+                    gain.gain.setValueAtTime(0.6, ctx.currentTime + offset);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.15);
+                    osc.start(ctx.currentTime + offset);
+                    osc.stop(ctx.currentTime + offset + 0.15);
+                });
+            } catch (e) { /* sin soporte de audio */ }
+        }
+
+        const TIMER_CLIENT_ID = Math.random().toString(36).slice(2, 8);
+        let timerDuration = parseInt(localStorage.getItem('lsk_timer_duration')) || 60;
+        let timerRemaining = timerDuration;
+
+        // Marcar preset activo según duración guardada
+        (function() {
+            const presets = [30, 40, 60, 120];
+            document.querySelectorAll('.timer-preset-btn').forEach((b, i) => {
+                b.classList.toggle('active', presets[i] === timerDuration);
+            });
+        })();
+        let timerInterval = null;
+        let timerRunning = false;
+        let timerStartedAt = null;
+        let timerEventSource = null;
+
+        function toggleTimerSection() {
+            document.getElementById('timer-body').classList.toggle('open');
+        }
+
+        function formatTime(s) {
+            const m = Math.floor(s / 60);
+            return m > 0 ? `${m}:${String(s % 60).padStart(2, '0')}` : `${s}s`;
+        }
+
+        function updateTimerDisplay() {
+            const text = formatTime(timerRemaining);
+            document.getElementById('timer-display').textContent = text;
+            document.getElementById('header-timer-time').textContent = text;
+            const disp = document.getElementById('timer-display');
+            disp.classList.toggle('running', timerRunning);
+            disp.classList.toggle('done', !timerRunning && timerRemaining === 0);
+            document.getElementById('header-timer-btn').classList.toggle('running', timerRunning);
+            document.getElementById('timer-start-btn').textContent =
+                timerRunning ? 'Pausar' : timerRemaining <= 0 ? 'Reiniciar' : 'Iniciar';
+        }
+
+        function pushTimerState(state) {
+            fetch(`${FIREBASE_URL}/timer.json`, {
+                method: 'PUT',
+                body: JSON.stringify({ ...state, updatedBy: TIMER_CLIENT_ID })
+            }).catch(() => {});
+        }
+
+        function applyTimerState(state) {
+            if (!state) return;
+            timerDuration = state.duration;
+            clearInterval(timerInterval);
+            timerRunning = state.running;
+            timerStartedAt = state.startedAt || null;
+
+            if (state.running && state.startedAt) {
+                const elapsed = Math.floor((Date.now() - state.startedAt) / 1000);
+                timerRemaining = Math.max(0, state.remaining - elapsed);
+                if (timerRemaining > 0) {
+                    startLocalInterval(state.remaining, state.startedAt);
+                } else {
+                    timerRemaining = 0;
+                    timerRunning = false;
+                }
+            } else {
+                timerRemaining = state.remaining;
+            }
+
+            // Sincronizar botón de preset activo
+            const presets = [30, 40, 60, 120];
+            document.querySelectorAll('.timer-preset-btn').forEach((b, i) => {
+                b.classList.toggle('active', presets[i] === state.duration);
+            });
+
+            updateTimerDisplay();
+        }
+
+        function startLocalInterval(snapRemaining, snapStartedAt) {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - snapStartedAt) / 1000);
+                timerRemaining = Math.max(0, snapRemaining - elapsed);
+                updateTimerDisplay();
+                if (timerRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    timerRunning = false;
+                    updateTimerDisplay();
+                    playTimerSound();
+                    if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+                    pushTimerState({ duration: timerDuration, remaining: 0, startedAt: null, running: false });
+                }
+            }, 500);
+        }
+
+        function initTimerSync() {
+            if (timerEventSource) timerEventSource.close();
+            timerEventSource = new EventSource(`${FIREBASE_URL}/timer.json`);
+            timerEventSource.addEventListener('put', e => {
+                const msg = JSON.parse(e.data);
+                const data = msg.data;
+                if (!data || data.updatedBy === TIMER_CLIENT_ID) return;
+                applyTimerState(data);
+            });
+        }
+
+        function setTimer(seconds) {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            timerDuration = seconds;
+            timerRemaining = seconds;
+            timerStartedAt = null;
+            localStorage.setItem('lsk_timer_duration', seconds);
+            document.querySelectorAll('.timer-preset-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            updateTimerDisplay();
+            pushTimerState({ duration: seconds, remaining: seconds, startedAt: null, running: false });
+        }
+
+        function setCustomTimer() {
+            const val = parseInt(document.getElementById('timer-custom-input').value);
+            if (!val || val < 1) return;
+            clearInterval(timerInterval);
+            timerRunning = false;
+            timerDuration = val;
+            timerRemaining = val;
+            timerStartedAt = null;
+            localStorage.setItem('lsk_timer_duration', val);
+            document.querySelectorAll('.timer-preset-btn').forEach(b => b.classList.remove('active'));
+            updateTimerDisplay();
+            pushTimerState({ duration: val, remaining: val, startedAt: null, running: false });
+        }
+
+        function startPauseTimer() {
+            if (timerRunning) {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                updateTimerDisplay();
+                pushTimerState({ duration: timerDuration, remaining: timerRemaining, startedAt: null, running: false });
+            } else {
+                if (timerRemaining <= 0) timerRemaining = timerDuration;
+                timerRunning = true;
+                timerStartedAt = Date.now();
+                startLocalInterval(timerRemaining, timerStartedAt);
+                updateTimerDisplay();
+                pushTimerState({ duration: timerDuration, remaining: timerRemaining, startedAt: timerStartedAt, running: true });
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            timerRemaining = timerDuration;
+            timerStartedAt = null;
+            updateTimerDisplay();
+            pushTimerState({ duration: timerDuration, remaining: timerDuration, startedAt: null, running: false });
+        }
+
+        // INICIAR
         fetchAndRenderData();
+        initTimerSync();
     </script>
 </body>
 
