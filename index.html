@@ -1745,7 +1745,7 @@
                     gain.connect(ctx.destination);
                     osc.type = 'sine';
                     osc.frequency.value = 880;
-                    gain.gain.setValueAtTime(0.6, ctx.currentTime + offset);
+                    gain.gain.setValueAtTime(1.0, ctx.currentTime + offset);
                     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.15);
                     osc.start(ctx.currentTime + offset);
                     osc.stop(ctx.currentTime + offset + 0.15);
@@ -1790,8 +1790,38 @@
             });
         })();
 
+        let timerAlarmInterval = null;
+
+        function startAlarm() {
+            playTimerSound();
+            timerAlarmInterval = setInterval(playTimerSound, 1000);
+            document.addEventListener('click', stopAlarmSync);
+            document.addEventListener('touchstart', stopAlarmSync);
+            document.addEventListener('keydown', stopAlarmSync);
+        }
+
+        function stopAlarm() {
+            if (timerAlarmInterval === null) return;
+            clearInterval(timerAlarmInterval);
+            timerAlarmInterval = null;
+            document.removeEventListener('click', stopAlarmSync);
+            document.removeEventListener('touchstart', stopAlarmSync);
+            document.removeEventListener('keydown', stopAlarmSync);
+        }
+
+        function stopAlarmSync() {
+            stopAlarm();
+            pushTimerState({ duration: timerDuration, remaining: 0, startedAt: null, running: false, open: false });
+        }
+
         function toggleTimerSection() {
-            document.getElementById('timer-body').classList.toggle('open');
+            const body = document.getElementById('timer-body');
+            const closing = body.classList.contains('open');
+            body.classList.toggle('open');
+            if (closing) {
+                stopAlarm();
+                pushTimerState({ duration: timerDuration, remaining: timerRemaining, startedAt: timerStartedAt, running: timerRunning, open: false });
+            }
         }
 
         function formatTime(s) {
@@ -1828,7 +1858,7 @@
                     timerRunning = false;
                     timerRemaining = 0;
                     updateTimerDisplay();
-                    playTimerSound();
+                    startAlarm();
                     if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
                     pushTimerState({ duration: timerDuration, remaining: 0, startedAt: null, running: false });
                     return;
@@ -1864,6 +1894,10 @@
             document.querySelectorAll('.timer-preset-btn').forEach((b, i) => {
                 b.classList.toggle('active', presets[i] === state.duration);
             });
+            if (state.open === false) {
+                document.getElementById('timer-body').classList.remove('open');
+                stopAlarm();
+            }
             updateTimerDisplay();
         }
 
@@ -1928,7 +1962,7 @@
                 timerStartedAt = serverNow();
                 startDisplayLoop();
                 updateTimerDisplay();
-                pushTimerState({ duration: timerDuration, remaining: timerBaseRemaining, startedAt: timerStartedAt, running: true });
+                pushTimerState({ duration: timerDuration, remaining: timerBaseRemaining, startedAt: timerStartedAt, running: true, open: true });
             }
         }
 
