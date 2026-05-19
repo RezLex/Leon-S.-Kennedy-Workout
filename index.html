@@ -384,6 +384,27 @@
         .exercise-card.editing .exercise-name { display: none; }
         .exercise-card.editing .name-input { display: block; }
 
+        /* ── SPINNER ── */
+        .spinner-wrap {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 0;
+        }
+
+        .spinner-wrap.visible { display: flex; }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
         /* ── UTILITY BAR ── */
         .utility-bar {
             display: flex;
@@ -568,6 +589,8 @@
         <button class="tab-btn" data-day="3" role="tab">Día 3<span class="badge" id="badge-3"></span></button>
     </div>
 
+    <div class="spinner-wrap" id="spinner"><div class="spinner"></div></div>
+
     <div class="day-panel active" id="day-1">
         <div class="progress-wrap">
             <div class="progress-label"><span>Progreso</span><span id="prog-label-1">0 / 0</span></div>
@@ -660,18 +683,55 @@
         const STORE_KEY = 'lsk_rutina_v2';
         let TOTALS = { 1: 0, 2: 0, 3: 0 };
 
-        /* ── FETCH LOCAL CSV ── */
-        async function fetchAndRenderData(url = './data.csv') {
+        /* ── LOAD DATA ── */
+        function showSpinner() {
+            document.getElementById('spinner').classList.add('visible');
+            document.querySelectorAll('.day-panel').forEach(p => p.style.display = 'none');
+        }
+
+        function hideSpinner() {
+            document.getElementById('spinner').classList.remove('visible');
+            document.querySelectorAll('.day-panel').forEach(p => p.style.display = '');
+        }
+
+        async function fetchAndRenderData(csvFallback = './data.csv') {
+            showSpinner();
             try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error("No se encontró " + url);
-                const csvText = await response.text();
-                renderExercises(csvText);
+                const fbResp = await fetch(`${FIREBASE_URL}/rutina.json`);
+                if (fbResp.ok) {
+                    const fbData = await fbResp.json();
+                    if (fbData && fbData.exercises && fbData.exercises.length > 0) {
+                        renderExercisesFromArray(fbData.exercises);
+                        init();
+                        return;
+                    }
+                }
+                // Firebase vacío → cargar CSV y subirlo
+                const csvResp = await fetch(csvFallback);
+                if (!csvResp.ok) throw new Error('No se encontró ' + csvFallback);
+                renderExercises(await csvResp.text());
                 init();
+                await saveToFirebase();
             } catch (error) {
-                console.error("No se pudieron obtener los datos:", error);
+                console.error("Error cargando rutina:", error);
                 showToast("Error cargando rutina.");
+            } finally {
+                hideSpinner();
             }
+        }
+
+        function renderExercisesFromArray(exercises) {
+            document.getElementById('exercises-1').innerHTML = '';
+            document.getElementById('exercises-2').innerHTML = '';
+            document.getElementById('exercises-3').innerHTML = '';
+            TOTALS = { 1: 0, 2: 0, 3: 0 };
+            exercises.forEach(ex => {
+                const dia = parseInt(ex.dia);
+                const container = document.getElementById('exercises-' + dia);
+                if (!container) return;
+                TOTALS[dia]++;
+                container.insertAdjacentHTML('beforeend', createCardHTML(ex.id, ex.nombre, ex.series, ex.peso));
+            });
         }
 
         function createCardHTML(id, nombre, series, peso) {
@@ -734,66 +794,26 @@
             });
         }
 
-        /* ── PERSISTENCE ── */
+        /* ── PERSISTENCE (solo done states) ── */
         function loadState() {
             try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; }
         }
         function saveState(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
 
-        const DELETED_KEY = 'lsk_deleted_v2';
-        function loadDeleted() {
-            try { return new Set(JSON.parse(localStorage.getItem(DELETED_KEY)) || []); } catch { return new Set(); }
-        }
-        function saveDeleted(s) { localStorage.setItem(DELETED_KEY, JSON.stringify([...s])); }
-
-        const ADDED_KEY = 'lsk_added_v2';
-        function loadAdded() {
-            try { return JSON.parse(localStorage.getItem(ADDED_KEY)) || []; } catch { return []; }
-        }
-        function saveAdded(list) { localStorage.setItem(ADDED_KEY, JSON.stringify(list)); }
-
         /* ── INIT ── */
         function init() {
             const state = loadState();
-            const deleted = loadDeleted();
 
-            // Remove deleted CSV exercises
+            // Solo restaurar checks (por dispositivo)
             document.querySelectorAll('.exercise-card').forEach(card => {
-                if (deleted.has(card.dataset.id)) {
-                    const dia = parseInt(card.dataset.id.split('-')[0]);
-                    TOTALS[dia] = Math.max(0, (TOTALS[dia] || 0) - 1);
-                    card.remove();
-                }
-            });
-
-            // Render added exercises
-            loadAdded().forEach(ex => {
-                const container = document.getElementById('exercises-' + ex.dia);
-                if (!container) return;
-                TOTALS[ex.dia] = (TOTALS[ex.dia] || 0) + 1;
-                container.insertAdjacentHTML('beforeend', createCardHTML(ex.id, ex.nombre, ex.series, ex.peso));
-            });
-
-            // Restore saved state to all cards
-            document.querySelectorAll('.exercise-card').forEach(card => {
-                const id = card.dataset.id;
-                const s = state[id];
-                if (!s) return;
-                if (s.done) {
+                const s = state[card.dataset.id];
+                if (s && s.done) {
                     card.querySelector('input[type="checkbox"]').checked = true;
                     card.classList.add('done');
                 }
-                const fields = card.querySelectorAll('.field-group');
-                if (s.reps !== undefined) updateField(fields[0], s.reps);
-                if (s.peso !== undefined) updateField(fields[1], s.peso);
-                if (s.nombre !== undefined) {
-                    card.querySelector('.exercise-name').textContent = s.nombre;
-                    card.querySelector('.name-input').value = s.nombre;
-                    card.querySelector('.search-btn').href = 'https://www.google.com/search?q=' + encodeURIComponent(s.nombre + ' ejercicio como hacer');
-                }
             });
 
-            // Restore last tab
+            // Restaurar última tab
             const lastTab = localStorage.getItem('lsk_last_tab');
             if (lastTab && document.getElementById('day-' + lastTab)) {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -920,13 +940,7 @@
             nameInput.value = nombre;
             closeEditBar(card);
 
-            const state = loadState();
-            state[id] = state[id] || {};
-            state[id].reps = reps;
-            state[id].peso = peso;
-            state[id].nombre = nombre;
-            saveState(state);
-            showToast('Guardado localmente');
+            saveToFirebase();
         }
 
         function cancelEdit(cancelBtn) {
@@ -974,24 +988,23 @@
         }
 
         /* ── EXPORT CSV ── */
-        function exportCSV() {
-            const state = loadState();
+        function generateCSVContent() {
             const rows = [['Dia', 'ID', 'Ejercicio', 'Series_Reps', 'Peso']];
-
             document.querySelectorAll('.exercise-card').forEach(card => {
                 const id = card.dataset.id;
                 const dia = id.split('-')[0];
-                const s = state[id] || {};
-                const nombre = s.nombre || card.querySelector('.exercise-name').textContent;
+                const nombre = card.querySelector('.exercise-name').textContent;
                 const fields = card.querySelectorAll('.field-group');
-                const repsDisp = fields[0].querySelector('.field-value').textContent;
-                const reps = s.reps !== undefined ? s.reps : repsDisp;
-                const pesoDisp = fields[1].querySelector('.field-value');
-                const peso = s.peso !== undefined ? s.peso : (pesoDisp.classList.contains('empty') ? '' : pesoDisp.textContent);
-                rows.push([dia, id, nombre, reps, peso]);
+                const series = fields[0].querySelector('.field-value').textContent;
+                const pesoEl = fields[1].querySelector('.field-value');
+                const peso = pesoEl.classList.contains('empty') ? '' : pesoEl.textContent;
+                rows.push([dia, id, nombre, series, peso]);
             });
+            return rows.map(r => r.join(',')).join('\n');
+        }
 
-            const csv = rows.map(r => r.join(',')).join('\n');
+        function exportCSV() {
+            const csv = generateCSVContent();
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
@@ -1001,22 +1014,40 @@
             showToast('data.csv descargado');
         }
 
+        /* ── FIREBASE SYNC ── */
+        const FIREBASE_URL = 'https://leon-kennedy-workout-default-rtdb.firebaseio.com';
+
+        async function saveToFirebase() {
+            const exercises = [];
+            document.querySelectorAll('.exercise-card').forEach(card => {
+                const id = card.dataset.id;
+                const dia = id.split('-')[0];
+                const nombre = card.querySelector('.exercise-name').textContent;
+                const fields = card.querySelectorAll('.field-group');
+                const seriesEl = fields[0].querySelector('.field-value');
+                const pesoEl = fields[1].querySelector('.field-value');
+                const series = seriesEl.textContent;
+                const peso = pesoEl.classList.contains('empty') ? '' : pesoEl.textContent;
+                exercises.push({ dia, id, nombre, series, peso });
+            });
+            try {
+                const r = await fetch(`${FIREBASE_URL}/rutina.json`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ exercises })
+                });
+                if (!r.ok) throw new Error(r.status);
+                showToast('Guardado ✓');
+            } catch (err) {
+                showToast('Error al guardar: ' + err.message);
+            }
+        }
+
         /* ── DELETE EXERCISE ── */
         function deleteExercise(btn) {
             if (!confirm('¿Eliminar este ejercicio?')) return;
             const card = btn.closest('.exercise-card');
             const id = card.dataset.id;
             const dia = parseInt(id.split('-')[0]);
-
-            if (id.split('-')[1] && id.split('-')[1].startsWith('a')) {
-                // Added exercise: remove from added list
-                saveAdded(loadAdded().filter(ex => ex.id !== id));
-            } else {
-                // CSV exercise: mark as deleted
-                const deleted = loadDeleted();
-                deleted.add(id);
-                saveDeleted(deleted);
-            }
 
             const state = loadState();
             delete state[id];
@@ -1025,6 +1056,7 @@
             TOTALS[dia] = Math.max(0, (TOTALS[dia] || 0) - 1);
             card.remove();
             updateProgress(dia);
+            saveToFirebase();
         }
 
         /* ── ADD EXERCISE ── */
@@ -1047,10 +1079,6 @@
             container.insertAdjacentHTML('beforeend', createCardHTML(id, nombre, series, peso));
             TOTALS[day] = (TOTALS[day] || 0) + 1;
 
-            const added = loadAdded();
-            added.push({ dia: day, id, nombre, series, peso });
-            saveAdded(added);
-
             form.querySelector('.add-nombre').value = '';
             form.querySelector('.add-series').value = '';
             form.querySelector('.add-peso').value = '';
@@ -1058,6 +1086,7 @@
 
             updateProgress(day);
             showToast('Ejercicio agregado');
+            saveToFirebase();
         }
 
         function cancelAddForm(day) {
@@ -1072,10 +1101,11 @@
         async function resetToOrigin() {
             if (!confirm('¿Restaurar todos los ejercicios al estado original? Se perderán todos los cambios guardados.')) return;
             localStorage.removeItem(STORE_KEY);
-            localStorage.removeItem(DELETED_KEY);
-            localStorage.removeItem(ADDED_KEY);
             localStorage.removeItem('lsk_last_tab');
-            await fetchAndRenderData('./data-origin.csv');
+            const csvResp = await fetch('./data.csv');
+            renderExercises(await csvResp.text());
+            init();
+            await saveToFirebase();
             showToast('Datos restaurados al original');
         }
 
