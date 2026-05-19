@@ -1754,6 +1754,26 @@
         }
 
         const TIMER_CLIENT_ID = Math.random().toString(36).slice(2, 8);
+
+        /* ── CLOCK SYNC (NTP-like) ── */
+        let clockOffset = 0;
+
+        async function syncClock() {
+            try {
+                const t1 = Date.now();
+                await fetch(`${FIREBASE_URL}/serverTime.json`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ '.sv': 'timestamp' })
+                });
+                const t2 = Date.now();
+                const resp = await fetch(`${FIREBASE_URL}/serverTime.json`);
+                const serverTime = await resp.json();
+                clockOffset = serverTime - Math.round((t1 + t2) / 2);
+            } catch (e) { clockOffset = 0; }
+        }
+
+        function serverNow() { return Date.now() + clockOffset; }
+
         let timerDuration = parseInt(localStorage.getItem('lsk_timer_duration')) || 60;
         let timerRemaining = timerDuration;
         let timerRunning = false;
@@ -1801,7 +1821,7 @@
         function startDisplayLoop() {
             cancelAnimationFrame(timerRAF);
             function tick() {
-                const raw = timerBaseRemaining - (Date.now() - timerStartedAt) / 1000;
+                const raw = timerBaseRemaining - (serverNow() - timerStartedAt) / 1000;
                 timerRemaining = Math.max(0, Math.ceil(raw));
                 updateTimerDisplay();
                 if (raw <= 0) {
@@ -1827,7 +1847,7 @@
             timerBaseRemaining = state.remaining;
 
             if (state.running && state.startedAt) {
-                const raw = state.remaining - (Date.now() - state.startedAt) / 1000;
+                const raw = state.remaining - (serverNow() - state.startedAt) / 1000;
                 timerRemaining = Math.max(0, Math.ceil(raw));
                 if (raw > 0) {
                     document.getElementById('timer-body').classList.add('open');
@@ -1891,7 +1911,7 @@
             if (timerRunning) {
                 cancelAnimationFrame(timerRAF);
                 timerRunning = false;
-                const raw = timerBaseRemaining - (Date.now() - timerStartedAt) / 1000;
+                const raw = timerBaseRemaining - (serverNow() - timerStartedAt) / 1000;
                 timerRemaining = Math.max(0, Math.ceil(raw));
                 timerBaseRemaining = timerRemaining;
                 timerStartedAt = null;
@@ -1905,7 +1925,7 @@
                     timerBaseRemaining = timerRemaining;
                 }
                 timerRunning = true;
-                timerStartedAt = Date.now();
+                timerStartedAt = serverNow();
                 startDisplayLoop();
                 updateTimerDisplay();
                 pushTimerState({ duration: timerDuration, remaining: timerBaseRemaining, startedAt: timerStartedAt, running: true });
@@ -1923,6 +1943,7 @@
         }
 
         // INICIAR
+        syncClock();
         fetchAndRenderData();
         initTimerSync();
         initChecksSync();
