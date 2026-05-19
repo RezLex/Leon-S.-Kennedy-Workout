@@ -365,6 +365,145 @@
             color: var(--text);
         }
 
+        /* ── NAME INPUT ── */
+        .name-input {
+            flex: 1;
+            background: none;
+            border: none;
+            border-bottom: 1px solid var(--accent);
+            outline: none;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--accent2);
+            font-family: inherit;
+            display: none;
+            min-width: 0;
+            padding: 0;
+        }
+
+        .exercise-card.editing .exercise-name { display: none; }
+        .exercise-card.editing .name-input { display: block; }
+
+        /* ── UTILITY BAR ── */
+        .utility-bar {
+            display: flex;
+            gap: 10px;
+            padding: 20px 12px 8px;
+            justify-content: center;
+        }
+
+        .util-btn {
+            padding: 9px 18px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .util-btn-export {
+            background: none;
+            color: var(--muted);
+        }
+
+        .util-btn-export:hover {
+            border-color: var(--accent2);
+            color: var(--accent2);
+        }
+
+        .util-btn-origin {
+            background: none;
+            color: var(--muted);
+        }
+
+        .util-btn-origin:hover {
+            border-color: #e67e22;
+            color: #e67e22;
+        }
+
+        /* ── SEARCH / DELETE ── */
+        .search-btn {
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 6px;
+            transition: color 0.2s, background 0.2s;
+            flex-shrink: 0;
+            text-decoration: none;
+        }
+
+        .search-btn:hover { color: #4285f4; background: rgba(66,133,244,0.1); }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            transition: color 0.2s, background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .delete-btn:hover { color: var(--accent); background: rgba(230,57,70,0.1); }
+
+        /* ── ADD FORM ── */
+        .add-form {
+            display: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px;
+            margin-bottom: 10px;
+            flex-direction: column;
+            gap: 10px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .add-form.open { display: flex; }
+
+        .add-form-fields { display: flex; flex-direction: column; gap: 8px; }
+
+        .add-input {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 0.88rem;
+            color: var(--text);
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .add-input:focus { border-color: var(--accent); }
+        .add-input::placeholder { color: var(--muted); }
+
+        .add-form-btns { display: flex; gap: 8px; }
+
+        .add-exercise-wrap { text-align: center; margin-bottom: 8px; }
+
+        .add-exercise-btn {
+            background: none;
+            border: 1px dashed var(--border);
+            color: var(--muted);
+            font-size: 0.75rem;
+            padding: 9px;
+            border-radius: 10px;
+            cursor: pointer;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .add-exercise-btn:hover { border-color: var(--green); color: var(--green); }
+
         /* ── RESET ALL ── */
         .reset-wrap {
             text-align: center;
@@ -437,6 +576,20 @@
             </div>
         </div>
         <div id="exercises-1"></div>
+        <div id="add-form-1" class="add-form">
+            <div class="add-form-fields">
+                <input class="add-input add-nombre" type="text" placeholder="Nombre del ejercicio">
+                <input class="add-input add-series" type="text" placeholder="Series / Reps (ej: 3 x 10-12)">
+                <input class="add-input add-peso" type="text" placeholder="Peso (vacío = peso corporal)">
+            </div>
+            <div class="add-form-btns">
+                <button class="edit-bar-btn btn-save" onclick="saveNewExercise(1)">Agregar</button>
+                <button class="edit-bar-btn btn-cancel" onclick="cancelAddForm(1)">Cancelar</button>
+            </div>
+        </div>
+        <div class="add-exercise-wrap">
+            <button class="add-exercise-btn" onclick="showAddForm(1)">+ Agregar ejercicio</button>
+        </div>
         <div class="reset-wrap">
             <button class="reset-btn" onclick="resetDay(1)">Reiniciar día 1</button>
         </div>
@@ -450,6 +603,20 @@
             </div>
         </div>
         <div id="exercises-2"></div>
+        <div id="add-form-2" class="add-form">
+            <div class="add-form-fields">
+                <input class="add-input add-nombre" type="text" placeholder="Nombre del ejercicio">
+                <input class="add-input add-series" type="text" placeholder="Series / Reps (ej: 3 x 10-12)">
+                <input class="add-input add-peso" type="text" placeholder="Peso (vacío = peso corporal)">
+            </div>
+            <div class="add-form-btns">
+                <button class="edit-bar-btn btn-save" onclick="saveNewExercise(2)">Agregar</button>
+                <button class="edit-bar-btn btn-cancel" onclick="cancelAddForm(2)">Cancelar</button>
+            </div>
+        </div>
+        <div class="add-exercise-wrap">
+            <button class="add-exercise-btn" onclick="showAddForm(2)">+ Agregar ejercicio</button>
+        </div>
         <div class="reset-wrap">
             <button class="reset-btn" onclick="resetDay(2)">Reiniciar día 2</button>
         </div>
@@ -463,67 +630,55 @@
             </div>
         </div>
         <div id="exercises-3"></div>
+        <div id="add-form-3" class="add-form">
+            <div class="add-form-fields">
+                <input class="add-input add-nombre" type="text" placeholder="Nombre del ejercicio">
+                <input class="add-input add-series" type="text" placeholder="Series / Reps (ej: 3 x 10-12)">
+                <input class="add-input add-peso" type="text" placeholder="Peso (vacío = peso corporal)">
+            </div>
+            <div class="add-form-btns">
+                <button class="edit-bar-btn btn-save" onclick="saveNewExercise(3)">Agregar</button>
+                <button class="edit-bar-btn btn-cancel" onclick="cancelAddForm(3)">Cancelar</button>
+            </div>
+        </div>
+        <div class="add-exercise-wrap">
+            <button class="add-exercise-btn" onclick="showAddForm(3)">+ Agregar ejercicio</button>
+        </div>
         <div class="reset-wrap">
             <button class="reset-btn" onclick="resetDay(3)">Reiniciar día 3</button>
         </div>
     </div>
 
+    <div class="utility-bar">
+        <button class="util-btn util-btn-export" onclick="exportCSV()">Exportar data.csv</button>
+        <button class="util-btn util-btn-origin" onclick="resetToOrigin()">Restaurar originales</button>
+    </div>
+
     <div class="toast" id="toast"></div>
 
     <script>
-        // ==== REEMPLAZA ESTE ENLACE CON TU URL CSV PUBLICADA DE GOOGLE SHEETS ====
-        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1VO-Yx1kInKAbRVt8FcWo9KYC012K68TkcqFxK6h-ryw/export?format=csv';
-        // =========================================================================
-
         const STORE_KEY = 'lsk_rutina_v2';
-        let TOTALS = { 1: 0, 2: 0, 3: 0 }; // Se actualizará dinámicamente
+        let TOTALS = { 1: 0, 2: 0, 3: 0 };
 
-        /* ── FETCH GOOGLE SHEETS ── */
-        async function fetchAndRenderData() {
+        /* ── FETCH LOCAL CSV ── */
+        async function fetchAndRenderData(url = './data.csv') {
             try {
-                const response = await fetch(SHEET_CSV_URL);
-                if (!response.ok) throw new Error("Error en la descarga del CSV");
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("No se encontró " + url);
                 const csvText = await response.text();
                 renderExercises(csvText);
-                init(); // Inicializar estados (checkboxes, edits) DESPUÉS de renderizar
+                init();
             } catch (error) {
-                console.error("No se pudieron obtener los datos de Drive:", error);
-                showToast("Error cargando rutina. Verifica el enlace.");
+                console.error("No se pudieron obtener los datos:", error);
+                showToast("Error cargando rutina.");
             }
         }
 
-        function renderExercises(csv) {
-            // Limpiar contenedores por si se ejecuta varias veces
-            document.getElementById('exercises-1').innerHTML = '';
-            document.getElementById('exercises-2').innerHTML = '';
-            document.getElementById('exercises-3').innerHTML = '';
-            TOTALS = { 1: 0, 2: 0, 3: 0 };
-
-            const lines = csv.split('\n').map(l => l.trim()).filter(l => l);
-            lines.shift(); // Quitar la fila de encabezados (Dia,ID,Ejercicio,Series_Reps,Peso)
-
-            const containers = {
-                1: document.getElementById('exercises-1'),
-                2: document.getElementById('exercises-2'),
-                3: document.getElementById('exercises-3')
-            };
-
-            lines.forEach(line => {
-                const parts = line.split(',');
-                const dia = parts[0];
-                const id = parts[1];
-                const nombre = parts[2];
-                const series = parts[3];
-                const peso = parts[4] || '';
-
-                if (!containers[dia]) return;
-
-                TOTALS[dia]++; // Sumar al total de ejercicios del día
-
-                const pesoClase = peso ? '' : 'empty';
-                const pesoMostrar = peso ? peso : '— Peso corporal —';
-
-                const cardHTML = `
+        function createCardHTML(id, nombre, series, peso) {
+            const pesoClase = peso ? '' : 'empty';
+            const pesoMostrar = peso ? peso : '— Peso corporal —';
+            const searchUrl = 'https://www.google.com/search?q=' + encodeURIComponent(nombre + ' ejercicio como hacer');
+            return `
       <div class="exercise-card" data-id="${id}">
         <div class="card-header">
           <label class="check-wrap">
@@ -531,8 +686,15 @@
             <div class="check-circle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
           </label>
           <span class="exercise-name">${nombre}</span>
+          <input class="name-input" type="text" value="${nombre}">
+          <a class="search-btn" href="${searchUrl}" target="_blank" rel="noopener" title="Buscar en Google">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </a>
           <button class="edit-btn" onclick="toggleEdit(this)" title="Editar">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="delete-btn" onclick="deleteExercise(this)" title="Eliminar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
           </button>
         </div>
         <div class="card-fields">
@@ -542,7 +704,33 @@
         <div class="card-edit-bar"><button class="edit-bar-btn btn-save" onclick="saveEdit(this)">Guardar</button><button class="edit-bar-btn btn-cancel" onclick="cancelEdit(this)">Cancelar</button></div>
       </div>
     `;
-                containers[dia].insertAdjacentHTML('beforeend', cardHTML);
+        }
+
+        function renderExercises(csv) {
+            document.getElementById('exercises-1').innerHTML = '';
+            document.getElementById('exercises-2').innerHTML = '';
+            document.getElementById('exercises-3').innerHTML = '';
+            TOTALS = { 1: 0, 2: 0, 3: 0 };
+
+            const lines = csv.split('\n').map(l => l.trim()).filter(l => l);
+            lines.shift();
+
+            const containers = {
+                1: document.getElementById('exercises-1'),
+                2: document.getElementById('exercises-2'),
+                3: document.getElementById('exercises-3')
+            };
+
+            lines.forEach(line => {
+                const parts = line.split(',');
+                const dia = parseInt(parts[0]);
+                const id = parts[1];
+                const nombre = parts[2];
+                const series = parts[3];
+                const peso = parts[4] || '';
+                if (!containers[dia]) return;
+                TOTALS[dia]++;
+                containers[dia].insertAdjacentHTML('beforeend', createCardHTML(id, nombre, series, peso));
             });
         }
 
@@ -552,9 +740,41 @@
         }
         function saveState(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
 
+        const DELETED_KEY = 'lsk_deleted_v2';
+        function loadDeleted() {
+            try { return new Set(JSON.parse(localStorage.getItem(DELETED_KEY)) || []); } catch { return new Set(); }
+        }
+        function saveDeleted(s) { localStorage.setItem(DELETED_KEY, JSON.stringify([...s])); }
+
+        const ADDED_KEY = 'lsk_added_v2';
+        function loadAdded() {
+            try { return JSON.parse(localStorage.getItem(ADDED_KEY)) || []; } catch { return []; }
+        }
+        function saveAdded(list) { localStorage.setItem(ADDED_KEY, JSON.stringify(list)); }
+
         /* ── INIT ── */
         function init() {
             const state = loadState();
+            const deleted = loadDeleted();
+
+            // Remove deleted CSV exercises
+            document.querySelectorAll('.exercise-card').forEach(card => {
+                if (deleted.has(card.dataset.id)) {
+                    const dia = parseInt(card.dataset.id.split('-')[0]);
+                    TOTALS[dia] = Math.max(0, (TOTALS[dia] || 0) - 1);
+                    card.remove();
+                }
+            });
+
+            // Render added exercises
+            loadAdded().forEach(ex => {
+                const container = document.getElementById('exercises-' + ex.dia);
+                if (!container) return;
+                TOTALS[ex.dia] = (TOTALS[ex.dia] || 0) + 1;
+                container.insertAdjacentHTML('beforeend', createCardHTML(ex.id, ex.nombre, ex.series, ex.peso));
+            });
+
+            // Restore saved state to all cards
             document.querySelectorAll('.exercise-card').forEach(card => {
                 const id = card.dataset.id;
                 const s = state[id];
@@ -566,8 +786,23 @@
                 const fields = card.querySelectorAll('.field-group');
                 if (s.reps !== undefined) updateField(fields[0], s.reps);
                 if (s.peso !== undefined) updateField(fields[1], s.peso);
+                if (s.nombre !== undefined) {
+                    card.querySelector('.exercise-name').textContent = s.nombre;
+                    card.querySelector('.name-input').value = s.nombre;
+                    card.querySelector('.search-btn').href = 'https://www.google.com/search?q=' + encodeURIComponent(s.nombre + ' ejercicio como hacer');
+                }
             });
-            [1, 2, 3].forEach(d => updateProgress(d));
+
+            // Restore last tab
+            const lastTab = localStorage.getItem('lsk_last_tab');
+            if (lastTab && document.getElementById('day-' + lastTab)) {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+                document.querySelector(`.tab-btn[data-day="${lastTab}"]`).classList.add('active');
+                document.getElementById('day-' + lastTab).classList.add('active');
+            }
+
+            [1, 2, 3].forEach(d => { updateProgress(d); sortDay(d); });
         }
 
         function updateField(fg, val) {
@@ -590,6 +825,7 @@
                 document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
                 btn.classList.add('active');
                 document.getElementById('day-' + btn.dataset.day).classList.add('active');
+                localStorage.setItem('lsk_last_tab', btn.dataset.day);
             });
         });
 
@@ -604,6 +840,27 @@
             state[id].done = cb.checked;
             saveState(state);
             updateProgress(day);
+            sortDay(day);
+        }
+
+        /* ── SORT ── */
+        function getIdOrder(id) {
+            const parts = id.split('-');
+            if (parts[1] && parts[1].startsWith('a')) return 10000 + parseInt(parts[1].slice(1), 10);
+            return parseInt(parts[1] || 0, 10);
+        }
+
+        function sortDay(day) {
+            const container = document.getElementById('exercises-' + day);
+            if (!container) return;
+            const cards = [...container.querySelectorAll('.exercise-card')];
+            cards.sort((a, b) => {
+                const aDone = a.classList.contains('done') ? 1 : 0;
+                const bDone = b.classList.contains('done') ? 1 : 0;
+                if (aDone !== bDone) return aDone - bDone;
+                return getIdOrder(a.dataset.id) - getIdOrder(b.dataset.id);
+            });
+            cards.forEach(c => container.appendChild(c));
         }
 
         /* ── PROGRESS ── */
@@ -642,8 +899,9 @@
             }
             btn.classList.add('open');
             editBar.classList.add('open');
+            card.classList.add('editing');
             card.querySelectorAll('.field-group').forEach(fg => fg.classList.add('editing'));
-            card.querySelector('.field-input').focus();
+            card.querySelector('.name-input').focus();
         }
 
         function saveEdit(saveBtn) {
@@ -653,14 +911,20 @@
             const reps = fields[0].querySelector('.field-input').value.trim();
             const peso = fields[1].querySelector('.field-input').value.trim();
 
+            const nameInput = card.querySelector('.name-input');
+            const nombre = nameInput.value.trim() || card.querySelector('.exercise-name').textContent;
+
             updateField(fields[0], reps);
             updateField(fields[1], peso);
+            card.querySelector('.exercise-name').textContent = nombre;
+            nameInput.value = nombre;
             closeEditBar(card);
 
             const state = loadState();
             state[id] = state[id] || {};
             state[id].reps = reps;
             state[id].peso = peso;
+            state[id].nombre = nombre;
             saveState(state);
             showToast('Guardado localmente');
         }
@@ -673,6 +937,8 @@
                 const inp = fg.querySelector('.field-input');
                 inp.value = disp.classList.contains('empty') ? '' : disp.textContent;
             });
+            const nameInput = card.querySelector('.name-input');
+            nameInput.value = card.querySelector('.exercise-name').textContent;
             closeEditBar(card);
         }
 
@@ -680,6 +946,7 @@
             card.querySelector('.card-edit-bar').classList.remove('open');
             card.querySelector('.edit-btn').classList.remove('open');
             card.querySelectorAll('.field-group').forEach(fg => fg.classList.remove('editing'));
+            card.classList.remove('editing');
         }
 
         /* ── RESET ── */
@@ -694,6 +961,7 @@
             });
             saveState(state);
             updateProgress(day);
+            sortDay(day);
             showToast('Día ' + day + ' reiniciado');
         }
 
@@ -703,6 +971,112 @@
             t.textContent = msg;
             t.classList.add('show');
             setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        /* ── EXPORT CSV ── */
+        function exportCSV() {
+            const state = loadState();
+            const rows = [['Dia', 'ID', 'Ejercicio', 'Series_Reps', 'Peso']];
+
+            document.querySelectorAll('.exercise-card').forEach(card => {
+                const id = card.dataset.id;
+                const dia = id.split('-')[0];
+                const s = state[id] || {};
+                const nombre = s.nombre || card.querySelector('.exercise-name').textContent;
+                const fields = card.querySelectorAll('.field-group');
+                const repsDisp = fields[0].querySelector('.field-value').textContent;
+                const reps = s.reps !== undefined ? s.reps : repsDisp;
+                const pesoDisp = fields[1].querySelector('.field-value');
+                const peso = s.peso !== undefined ? s.peso : (pesoDisp.classList.contains('empty') ? '' : pesoDisp.textContent);
+                rows.push([dia, id, nombre, reps, peso]);
+            });
+
+            const csv = rows.map(r => r.join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'data.csv';
+            a.click();
+            URL.revokeObjectURL(a.href);
+            showToast('data.csv descargado');
+        }
+
+        /* ── DELETE EXERCISE ── */
+        function deleteExercise(btn) {
+            if (!confirm('¿Eliminar este ejercicio?')) return;
+            const card = btn.closest('.exercise-card');
+            const id = card.dataset.id;
+            const dia = parseInt(id.split('-')[0]);
+
+            if (id.split('-')[1] && id.split('-')[1].startsWith('a')) {
+                // Added exercise: remove from added list
+                saveAdded(loadAdded().filter(ex => ex.id !== id));
+            } else {
+                // CSV exercise: mark as deleted
+                const deleted = loadDeleted();
+                deleted.add(id);
+                saveDeleted(deleted);
+            }
+
+            const state = loadState();
+            delete state[id];
+            saveState(state);
+
+            TOTALS[dia] = Math.max(0, (TOTALS[dia] || 0) - 1);
+            card.remove();
+            updateProgress(dia);
+        }
+
+        /* ── ADD EXERCISE ── */
+        function showAddForm(day) {
+            const form = document.getElementById('add-form-' + day);
+            const isOpen = form.classList.contains('open');
+            form.classList.toggle('open');
+            if (!isOpen) form.querySelector('.add-nombre').focus();
+        }
+
+        function saveNewExercise(day) {
+            const form = document.getElementById('add-form-' + day);
+            const nombre = form.querySelector('.add-nombre').value.trim();
+            if (!nombre) { showToast('El nombre es requerido'); return; }
+            const series = form.querySelector('.add-series').value.trim() || '—';
+            const peso = form.querySelector('.add-peso').value.trim();
+
+            const id = `${day}-a${Date.now()}`;
+            const container = document.getElementById('exercises-' + day);
+            container.insertAdjacentHTML('beforeend', createCardHTML(id, nombre, series, peso));
+            TOTALS[day] = (TOTALS[day] || 0) + 1;
+
+            const added = loadAdded();
+            added.push({ dia: day, id, nombre, series, peso });
+            saveAdded(added);
+
+            form.querySelector('.add-nombre').value = '';
+            form.querySelector('.add-series').value = '';
+            form.querySelector('.add-peso').value = '';
+            form.classList.remove('open');
+
+            updateProgress(day);
+            showToast('Ejercicio agregado');
+        }
+
+        function cancelAddForm(day) {
+            const form = document.getElementById('add-form-' + day);
+            form.querySelector('.add-nombre').value = '';
+            form.querySelector('.add-series').value = '';
+            form.querySelector('.add-peso').value = '';
+            form.classList.remove('open');
+        }
+
+        /* ── RESET TO ORIGIN ── */
+        async function resetToOrigin() {
+            if (!confirm('¿Restaurar todos los ejercicios al estado original? Se perderán todos los cambios guardados.')) return;
+            localStorage.removeItem(STORE_KEY);
+            localStorage.removeItem(DELETED_KEY);
+            localStorage.removeItem(ADDED_KEY);
+            localStorage.removeItem('lsk_last_tab');
+            await fetchAndRenderData('./data-origin.csv');
+            showToast('Datos restaurados al original');
         }
 
         // INICIAR DESCARGA Y RENDERIZADO
