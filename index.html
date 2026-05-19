@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <title>Leon S. Kennedy — Rutina</title>
+    <style>
+        :root {
+            --bg: #0d0d0d;
+            --surface: #1a1a1a;
+            --card: #222;
+            --border: #333;
+            --accent: #e63946;
+            --accent2: #ff6b6b;
+            --text: #f0f0f0;
+            --muted: #888;
+            --green: #2ecc71;
+            --input-bg: #2a2a2a;
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100dvh;
+            padding-bottom: 32px;
+        }
+
+        /* ── HEADER ── */
+        header {
+            background: linear-gradient(135deg, #1a0000 0%, #2d0000 50%, #1a0000 100%);
+            border-bottom: 2px solid var(--accent);
+            padding: 20px 16px 12px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--accent);
+            text-shadow: 0 0 20px rgba(230, 57, 70, 0.5);
+        }
+
+        header p {
+            font-size: 0.7rem;
+            color: var(--muted);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        /* ── TABS ── */
+        .tabs {
+            display: flex;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 73px;
+            z-index: 99;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 14px 8px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-btn .badge {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 700;
+            border-radius: 20px;
+            padding: 1px 5px;
+            margin-left: 4px;
+            vertical-align: middle;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .tab-btn .badge.visible {
+            opacity: 1;
+        }
+
+        /* ── DAY PANEL ── */
+        .day-panel {
+            display: none;
+            padding: 16px 12px;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .day-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── PROGRESS BAR ── */
+        .progress-wrap {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+            border: 1px solid var(--border);
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .progress-label span:last-child {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .progress-bar {
+            background: var(--border);
+            border-radius: 99px;
+            height: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            height: 100%;
+            border-radius: 99px;
+            transition: width 0.4s ease;
+        }
+
+        /* ── EXERCISE CARD ── */
+        .exercise-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 10px;
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .exercise-card.done {
+            border-color: var(--green);
+            box-shadow: 0 0 12px rgba(46, 204, 113, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 14px 10px;
+        }
+
+        /* Checkbox */
+        .check-wrap {
+            flex-shrink: 0;
+        }
+
+        .check-wrap input[type="checkbox"] {
+            display: none;
+        }
+
+        .check-circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .check-circle svg {
+            opacity: 0;
+            transition: opacity 0.2s;
+            stroke: #fff;
+        }
+
+        .check-wrap input:checked~.check-circle {
+            background: var(--green);
+            border-color: var(--green);
+        }
+
+        .check-wrap input:checked~.check-circle svg {
+            opacity: 1;
+        }
+
+        .exercise-name {
+            flex: 1;
+            font-size: 0.95rem;
+            font-weight: 700;
+            line-height: 1.25;
+            transition: color 0.2s;
+        }
+
+        .exercise-card.done .exercise-name {
+            color: var(--green);
+            text-decoration: line-through;
+            text-decoration-color: rgba(46, 204, 113, 0.5);
+        }
+
+        /* Edit icon */
+        .edit-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            transition: color 0.2s, background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .edit-btn:hover,
+        .edit-btn.open {
+            color: var(--accent);
+            background: rgba(230, 57, 70, 0.1);
+        }
+
+        /* Fields row */
+        .card-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            padding: 0 14px 14px;
+        }
+
+        .field-group {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            position: relative;
+            transition: border-color 0.2s;
+        }
+
+        .field-group:focus-within {
+            border-color: var(--accent);
+        }
+
+        .field-label {
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 3px;
+        }
+
+        .field-value {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text);
+            display: block;
+            width: 100%;
+        }
+
+        /* Inline editable input */
+        .field-input {
+            background: none;
+            border: none;
+            outline: none;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--accent2);
+            width: 100%;
+            font-family: inherit;
+            display: none;
+        }
+
+        .field-group.editing .field-value {
+            display: none;
+        }
+
+        .field-group.editing .field-input {
+            display: block;
+        }
+
+        /* NULL / empty state */
+        .field-value.empty {
+            color: var(--muted);
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        /* Edit controls */
+        .card-edit-bar {
+            display: none;
+            padding: 0 14px 12px;
+            gap: 8px;
+        }
+
+        .card-edit-bar.open {
+            display: flex;
+        }
+
+        .edit-bar-btn {
+            flex: 1;
+            padding: 9px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: opacity 0.15s;
+        }
+
+        .edit-bar-btn:active {
+            opacity: 0.75;
+        }
+
+        .btn-save {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-cancel {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        /* ── RESET ALL ── */
+        .reset-wrap {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .reset-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 0.75rem;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .reset-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #222;
+            border: 1px solid var(--green);
+            color: var(--green);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 99px;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 999;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Leon S. Kennedy</h1>
+        <p>Plan de Entrenamiento</p>
+    </header>
+
+    <div class="tabs" role="tablist">
+        <button class="tab-btn active" data-day="1" role="tab">Día 1<span class="badge" id="badge-1"></span></button>
+        <button class="tab-btn" data-day="2" role="tab">Día 2<span class="badge" id="badge-2"></span></button>
+        <button class="tab-btn" data-day="3" role="tab">Día 3<span class="badge" id="badge-3"></span></button>
+    </div>
+
+    <div class="day-panel active" id="day-1">
+        <div class="progress-wrap">
+            <div class="progress-label"><span>Progreso</span><span id="prog-label-1">0 / 0</span></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="prog-fill-1" style="width:0%"></div>
+            </div>
+        </div>
+        <div id="exercises-1"></div>
+        <div class="reset-wrap">
+            <button class="reset-btn" onclick="resetDay(1)">Reiniciar día 1</button>
+        </div>
+    </div>
+
+    <div class="day-panel" id="day-2">
+        <div class="progress-wrap">
+            <div class="progress-label"><span>Progreso</span><span id="prog-label-2">0 / 0</span></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="prog-fill-2" style="width:0%"></div>
+            </div>
+        </div>
+        <div id="exercises-2"></div>
+        <div class="reset-wrap">
+            <button class="reset-btn" onclick="resetDay(2)">Reiniciar día 2</button>
+        </div>
+    </div>
+
+    <div class="day-panel" id="day-3">
+        <div class="progress-wrap">
+            <div class="progress-label"><span>Progreso</span><span id="prog-label-3">0 / 0</span></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="prog-fill-3" style="width:0%"></div>
+            </div>
+        </div>
+        <div id="exercises-3"></div>
+        <div class="reset-wrap">
+            <button class="reset-btn" onclick="resetDay(3)">Reiniciar día 3</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ==== REEMPLAZA ESTE ENLACE CON TU URL CSV PUBLICADA DE GOOGLE SHEETS ====
+        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1VO-Yx1kInKAbRVt8FcWo9KYC012K68TkcqFxK6h-ryw/export?format=csv';
+        // =========================================================================
+
+        const STORE_KEY = 'lsk_rutina_v2';
+        let TOTALS = { 1: 0, 2: 0, 3: 0 }; // Se actualizará dinámicamente
+
+        /* ── FETCH GOOGLE SHEETS ── */
+        async function fetchAndRenderData() {
+            try {
+                const response = await fetch(SHEET_CSV_URL);
+                if (!response.ok) throw new Error("Error en la descarga del CSV");
+                const csvText = await response.text();
+                renderExercises(csvText);
+                init(); // Inicializar estados (checkboxes, edits) DESPUÉS de renderizar
+            } catch (error) {
+                console.error("No se pudieron obtener los datos de Drive:", error);
+                showToast("Error cargando rutina. Verifica el enlace.");
+            }
+        }
+
+        function renderExercises(csv) {
+            // Limpiar contenedores por si se ejecuta varias veces
+            document.getElementById('exercises-1').innerHTML = '';
+            document.getElementById('exercises-2').innerHTML = '';
+            document.getElementById('exercises-3').innerHTML = '';
+            TOTALS = { 1: 0, 2: 0, 3: 0 };
+
+            const lines = csv.split('\n').map(l => l.trim()).filter(l => l);
+            lines.shift(); // Quitar la fila de encabezados (Dia,ID,Ejercicio,Series_Reps,Peso)
+
+            const containers = {
+                1: document.getElementById('exercises-1'),
+                2: document.getElementById('exercises-2'),
+                3: document.getElementById('exercises-3')
+            };
+
+            lines.forEach(line => {
+                const parts = line.split(',');
+                const dia = parts[0];
+                const id = parts[1];
+                const nombre = parts[2];
+                const series = parts[3];
+                const peso = parts[4] || '';
+
+                if (!containers[dia]) return;
+
+                TOTALS[dia]++; // Sumar al total de ejercicios del día
+
+                const pesoClase = peso ? '' : 'empty';
+                const pesoMostrar = peso ? peso : '— Peso corporal —';
+
+                const cardHTML = `
+      <div class="exercise-card" data-id="${id}">
+        <div class="card-header">
+          <label class="check-wrap">
+            <input type="checkbox" onchange="toggleDone(this)">
+            <div class="check-circle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          </label>
+          <span class="exercise-name">${nombre}</span>
+          <button class="edit-btn" onclick="toggleEdit(this)" title="Editar">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+        </div>
+        <div class="card-fields">
+          <div class="field-group"><div class="field-label">Series / Reps</div><div class="field-value">${series}</div><input class="field-input" type="text" value="${series}"></div>
+          <div class="field-group"><div class="field-label">Peso</div><div class="field-value ${pesoClase}">${pesoMostrar}</div><input class="field-input" type="text" value="${peso}"></div>
+        </div>
+        <div class="card-edit-bar"><button class="edit-bar-btn btn-save" onclick="saveEdit(this)">Guardar</button><button class="edit-bar-btn btn-cancel" onclick="cancelEdit(this)">Cancelar</button></div>
+      </div>
+    `;
+                containers[dia].insertAdjacentHTML('beforeend', cardHTML);
+            });
+        }
+
+        /* ── PERSISTENCE ── */
+        function loadState() {
+            try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; }
+        }
+        function saveState(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
+
+        /* ── INIT ── */
+        function init() {
+            const state = loadState();
+            document.querySelectorAll('.exercise-card').forEach(card => {
+                const id = card.dataset.id;
+                const s = state[id];
+                if (!s) return;
+                if (s.done) {
+                    card.querySelector('input[type="checkbox"]').checked = true;
+                    card.classList.add('done');
+                }
+                const fields = card.querySelectorAll('.field-group');
+                if (s.reps !== undefined) updateField(fields[0], s.reps);
+                if (s.peso !== undefined) updateField(fields[1], s.peso);
+            });
+            [1, 2, 3].forEach(d => updateProgress(d));
+        }
+
+        function updateField(fg, val) {
+            const disp = fg.querySelector('.field-value');
+            const inp = fg.querySelector('.field-input');
+            inp.value = val;
+            if (val.trim() === '') {
+                disp.textContent = '— Peso corporal —';
+                disp.classList.add('empty');
+            } else {
+                disp.textContent = val;
+                disp.classList.remove('empty');
+            }
+        }
+
+        /* ── TABS ── */
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('day-' + btn.dataset.day).classList.add('active');
+            });
+        });
+
+        /* ── DONE TOGGLE ── */
+        function toggleDone(cb) {
+            const card = cb.closest('.exercise-card');
+            const id = card.dataset.id;
+            const day = parseInt(id.split('-')[0]);
+            card.classList.toggle('done', cb.checked);
+            const state = loadState();
+            state[id] = state[id] || {};
+            state[id].done = cb.checked;
+            saveState(state);
+            updateProgress(day);
+        }
+
+        /* ── PROGRESS ── */
+        function updateProgress(day) {
+            const cards = document.querySelectorAll(`#exercises-${day} .exercise-card`);
+            const done = [...cards].filter(c => c.classList.contains('done')).length;
+            const total = TOTALS[day] || 0;
+
+            if (total === 0) return; // Evitar dividir entre cero si aún no carga
+
+            const pct = Math.round((done / total) * 100);
+            document.getElementById(`prog-fill-${day}`).style.width = pct + '%';
+            document.getElementById(`prog-label-${day}`).textContent = `${done} / ${total}`;
+
+            const badge = document.getElementById(`badge-${day}`);
+            if (done > 0 && done < total) {
+                badge.textContent = done;
+                badge.classList.add('visible');
+            } else if (done === total) {
+                badge.textContent = '✓';
+                badge.classList.add('visible');
+            } else {
+                badge.classList.remove('visible');
+            }
+        }
+
+        /* ── EDIT ── */
+        function toggleEdit(btn) {
+            const card = btn.closest('.exercise-card');
+            const editBar = card.querySelector('.card-edit-bar');
+            const isOpen = editBar.classList.contains('open');
+
+            if (isOpen) {
+                cancelEdit(editBar.querySelector('.btn-cancel'));
+                return;
+            }
+            btn.classList.add('open');
+            editBar.classList.add('open');
+            card.querySelectorAll('.field-group').forEach(fg => fg.classList.add('editing'));
+            card.querySelector('.field-input').focus();
+        }
+
+        function saveEdit(saveBtn) {
+            const card = saveBtn.closest('.exercise-card');
+            const id = card.dataset.id;
+            const fields = card.querySelectorAll('.field-group');
+            const reps = fields[0].querySelector('.field-input').value.trim();
+            const peso = fields[1].querySelector('.field-input').value.trim();
+
+            updateField(fields[0], reps);
+            updateField(fields[1], peso);
+            closeEditBar(card);
+
+            const state = loadState();
+            state[id] = state[id] || {};
+            state[id].reps = reps;
+            state[id].peso = peso;
+            saveState(state);
+            showToast('Guardado localmente');
+        }
+
+        function cancelEdit(cancelBtn) {
+            const card = cancelBtn.closest('.exercise-card');
+            const fields = card.querySelectorAll('.field-group');
+            fields.forEach(fg => {
+                const disp = fg.querySelector('.field-value');
+                const inp = fg.querySelector('.field-input');
+                inp.value = disp.classList.contains('empty') ? '' : disp.textContent;
+            });
+            closeEditBar(card);
+        }
+
+        function closeEditBar(card) {
+            card.querySelector('.card-edit-bar').classList.remove('open');
+            card.querySelector('.edit-btn').classList.remove('open');
+            card.querySelectorAll('.field-group').forEach(fg => fg.classList.remove('editing'));
+        }
+
+        /* ── RESET ── */
+        function resetDay(day) {
+            const cards = document.querySelectorAll(`#exercises-${day} .exercise-card`);
+            const state = loadState();
+            cards.forEach(card => {
+                card.classList.remove('done');
+                card.querySelector('input[type="checkbox"]').checked = false;
+                const id = card.dataset.id;
+                if (state[id]) state[id].done = false;
+            });
+            saveState(state);
+            updateProgress(day);
+            showToast('Día ' + day + ' reiniciado');
+        }
+
+        /* ── TOAST ── */
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        // INICIAR DESCARGA Y RENDERIZADO
+        fetchAndRenderData();
+    </script>
+</body>
+
+</html>
