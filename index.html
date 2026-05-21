@@ -2213,11 +2213,17 @@
                 } else {
                     timerRemaining = 0;
                     timerRunning = false;
-                    timerPhase = 'setting';
+                    stopAlarm();
+                    startAlarm();
                 }
             } else {
                 timerRemaining = state.remaining;
-                timerPhase = (state.remaining > 0 && state.remaining < state.duration) ? 'paused' : 'setting';
+                if (state.remaining === 0 && state.open !== false) {
+                    stopAlarm();
+                    startAlarm();
+                } else {
+                    timerPhase = (state.remaining > 0 && state.remaining < state.duration) ? 'paused' : 'setting';
+                }
             }
 
             const presets = [30, 40, 60, 120];
