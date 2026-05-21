@@ -185,6 +185,11 @@
             box-shadow: 0 0 12px rgba(46, 204, 113, 0.15);
         }
 
+        .exercise-card.in-progress {
+            border-color: #f39c12;
+            box-shadow: 0 0 12px rgba(243, 156, 18, 0.15);
+        }
+
         .card-header {
             display: flex;
             align-items: center;
@@ -195,13 +200,11 @@
         /* Checkbox */
         .check-wrap {
             flex-shrink: 0;
-        }
-
-        .check-wrap input[type="checkbox"] {
-            display: none;
+            cursor: pointer;
         }
 
         .check-circle {
+            position: relative;
             width: 28px;
             height: 28px;
             border-radius: 50%;
@@ -215,17 +218,27 @@
         }
 
         .check-circle svg {
+            position: absolute;
             opacity: 0;
             transition: opacity 0.2s;
             stroke: #fff;
         }
 
-        .check-wrap input:checked~.check-circle {
+        .exercise-card.done .check-circle {
             background: var(--green);
             border-color: var(--green);
         }
 
-        .check-wrap input:checked~.check-circle svg {
+        .exercise-card.done .check-circle .icon-done {
+            opacity: 1;
+        }
+
+        .exercise-card.in-progress .check-circle {
+            background: #f39c12;
+            border-color: #f39c12;
+        }
+
+        .exercise-card.in-progress .check-circle .icon-progress {
             opacity: 1;
         }
 
@@ -241,6 +254,10 @@
             color: var(--green);
             text-decoration: line-through;
             text-decoration-color: rgba(46, 204, 113, 0.5);
+        }
+
+        .exercise-card.in-progress .exercise-name {
+            color: #f39c12;
         }
 
         /* Edit icon */
@@ -342,12 +359,14 @@
             display: none;
             padding: 10px 14px;
             gap: 8px;
-            background: rgba(230,57,70,0.07);
-            border-top: 1px solid rgba(230,57,70,0.2);
+            background: rgba(230, 57, 70, 0.07);
+            border-top: 1px solid rgba(230, 57, 70, 0.2);
             align-items: center;
         }
 
-        .card-delete-bar.open { display: flex; }
+        .card-delete-bar.open {
+            display: flex;
+        }
 
         .card-delete-bar span {
             flex: 1;
@@ -384,14 +403,25 @@
             gap: 8px;
             align-items: center;
             padding: 10px 12px;
-            background: rgba(230,57,70,0.06);
-            border: 1px solid rgba(230,57,70,0.2);
+            background: rgba(230, 57, 70, 0.06);
+            border: 1px solid rgba(230, 57, 70, 0.2);
             border-radius: 10px;
             margin-top: 8px;
         }
-        .action-confirm-bar.open { display: flex; }
-        .action-confirm-bar span { flex: 1; font-size: 0.78rem; color: var(--muted); }
-        .btn-confirm-green { background: var(--green); }
+
+        .action-confirm-bar.open {
+            display: flex;
+        }
+
+        .action-confirm-bar span {
+            flex: 1;
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+
+        .btn-confirm-green {
+            background: var(--green);
+        }
 
         .edit-bar-btn {
             flex: 1;
@@ -436,8 +466,13 @@
             padding: 0;
         }
 
-        .exercise-card.editing .exercise-name { display: none; }
-        .exercise-card.editing .name-input { display: block; }
+        .exercise-card.editing .exercise-name {
+            display: none;
+        }
+
+        .exercise-card.editing .name-input {
+            display: block;
+        }
 
         /* ── SPINNER ── */
         .spinner-wrap {
@@ -447,7 +482,9 @@
             padding: 60px 0;
         }
 
-        .spinner-wrap.visible { display: flex; }
+        .spinner-wrap.visible {
+            display: flex;
+        }
 
         .spinner {
             width: 36px;
@@ -458,7 +495,11 @@
             animation: spin 0.7s linear infinite;
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
         /* ── FINISH DAY BTN ── */
         .finish-day-wrap {
@@ -466,7 +507,9 @@
             margin-bottom: 8px;
         }
 
-        .finish-day-wrap.visible { display: block; }
+        .finish-day-wrap.visible {
+            display: block;
+        }
 
         .finish-day-btn {
             width: 100%;
@@ -484,8 +527,13 @@
             box-shadow: 0 4px 14px rgba(46, 204, 113, 0.3);
         }
 
-        .finish-day-btn:hover { opacity: 0.88; }
-        .finish-day-btn:active { transform: scale(0.98); }
+        .finish-day-btn:hover {
+            opacity: 0.88;
+        }
+
+        .finish-day-btn:active {
+            transform: scale(0.98);
+        }
 
         /* ── HEADER TIMER BTN ── */
         .header-timer-btn {
@@ -508,8 +556,13 @@
             transition: color 0.2s;
         }
 
-        .header-timer-btn:hover { color: var(--accent); }
-        .header-timer-btn.running { color: var(--accent); }
+        .header-timer-btn:hover {
+            color: var(--accent);
+        }
+
+        .header-timer-btn.running {
+            color: var(--accent);
+        }
 
         /* ── TIMER ── */
 
@@ -538,18 +591,59 @@
             background: none;
             border: none;
             color: var(--muted);
-            font-size: 1.4rem;
             cursor: pointer;
             padding: 8px;
             border-radius: 8px;
-            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: color 0.2s;
         }
 
-        .timer-close-btn:hover { color: var(--text); }
+        .timer-close-btn:hover {
+            color: var(--text);
+        }
+
+        .timer-ring-wrap {
+            position: relative;
+            width: 240px;
+            height: 240px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .timer-ring {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .timer-ring-bg {
+            fill: none;
+            stroke: var(--border);
+            stroke-width: 5;
+        }
+
+        .timer-ring-progress {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 5;
+            stroke-linecap: round;
+            stroke-dasharray: 659.73;
+            stroke-dashoffset: 0;
+            transition: stroke 0.3s;
+        }
+
+        .timer-ring-progress.done {
+            stroke: var(--green);
+        }
 
         .timer-display {
-            font-size: 7rem;
+            font-size: 4.5rem;
             font-weight: 800;
             text-align: center;
             font-variant-numeric: tabular-nums;
@@ -557,21 +651,96 @@
             color: var(--text);
             transition: color 0.3s;
             line-height: 1;
+            position: relative;
+            z-index: 1;
         }
 
-        .timer-display.running { color: var(--accent); }
-        .timer-display.done { color: var(--green); }
+        .timer-display.running {
+            color: var(--accent);
+        }
+
+        .timer-display.done {
+            color: var(--green);
+        }
+
+        .timer-display.editable {
+            cursor: pointer;
+        }
+
+        .timer-display-input {
+            position: absolute;
+            background: transparent;
+            border: none;
+            color: var(--accent);
+            font-size: 4.5rem;
+            font-weight: 800;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.04em;
+            width: 82%;
+            outline: none;
+            z-index: 2;
+            display: none;
+            padding: 0 0 3px;
+            font-family: inherit;
+        }
+
+
+        .timer-icon-btn {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border);
+            background: none;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .timer-icon-btn:hover {
+            border-color: var(--muted);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .timer-icon-btn.primary {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(230, 57, 70, 0.1);
+        }
+
+        .timer-icon-btn.primary:hover {
+            background: rgba(230, 57, 70, 0.18);
+        }
+
+        .timer-ctrl-active {
+            justify-content: center;
+            gap: 32px;
+        }
+
+        .timer-bottom {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+            max-width: 360px;
+            height: 136px;
+        }
 
         .timer-presets {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             width: 100%;
-            max-width: 400px;
+            max-width: 360px;
         }
 
         .timer-preset-btn {
             flex: 1;
-            padding: 12px 4px;
+            padding: 11px 4px;
             border-radius: 10px;
             border: 1px solid var(--border);
             background: none;
@@ -586,58 +755,46 @@
         .timer-preset-btn.active {
             border-color: var(--accent);
             color: var(--accent);
-            background: rgba(230,57,70,0.08);
+            background: rgba(230, 57, 70, 0.1);
         }
 
-        .timer-custom-row {
-            display: flex;
-            gap: 10px;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .timer-custom-input {
-            flex: 1;
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 16px;
-            font-size: 0.95rem;
-            color: var(--text);
-            font-family: inherit;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .timer-custom-input:focus { border-color: var(--accent); }
-        .timer-custom-input::placeholder { color: var(--muted); }
 
         .timer-controls {
             display: flex;
             gap: 10px;
             width: 100%;
-            max-width: 400px;
+            max-width: 360px;
         }
 
         .timer-start-btn {
-            flex: 2;
+            flex: 1;
             padding: 16px;
-            border-radius: 12px;
+            border-radius: 14px;
             border: none;
             background: var(--accent);
             color: #fff;
             font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
-            transition: opacity 0.2s;
+            transition: opacity 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .timer-start-btn:hover { opacity: 0.85; }
+        .timer-start-btn:hover {
+            opacity: 0.85;
+        }
+
+        .timer-start-btn:active {
+            transform: scale(0.97);
+        }
 
         .timer-reset-btn {
             flex: 1;
             padding: 16px;
-            border-radius: 12px;
+            border-radius: 14px;
             border: 1px solid var(--border);
             background: none;
             color: var(--muted);
@@ -647,7 +804,10 @@
             transition: all 0.2s;
         }
 
-        .timer-reset-btn:hover { border-color: var(--muted); color: var(--text); }
+        .timer-reset-btn:hover {
+            border-color: var(--muted);
+            color: var(--text);
+        }
 
         /* ── UTILITY BAR ── */
         .utility-bar {
@@ -690,7 +850,10 @@
             text-decoration: none;
         }
 
-        .search-btn:hover { color: #4285f4; background: rgba(66,133,244,0.1); }
+        .search-btn:hover {
+            color: #4285f4;
+            background: rgba(66, 133, 244, 0.1);
+        }
 
         .delete-btn {
             background: none;
@@ -703,7 +866,10 @@
             flex-shrink: 0;
         }
 
-        .delete-btn:hover { color: var(--accent); background: rgba(230,57,70,0.1); }
+        .delete-btn:hover {
+            color: var(--accent);
+            background: rgba(230, 57, 70, 0.1);
+        }
 
         /* ── ADD FORM ── */
         .add-form {
@@ -718,9 +884,15 @@
             animation: fadeIn 0.2s ease;
         }
 
-        .add-form.open { display: flex; }
+        .add-form.open {
+            display: flex;
+        }
 
-        .add-form-fields { display: flex; flex-direction: column; gap: 8px; }
+        .add-form-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
         .add-input {
             background: var(--input-bg);
@@ -734,12 +906,23 @@
             transition: border-color 0.2s;
         }
 
-        .add-input:focus { border-color: var(--accent); }
-        .add-input::placeholder { color: var(--muted); }
+        .add-input:focus {
+            border-color: var(--accent);
+        }
 
-        .add-form-btns { display: flex; gap: 8px; }
+        .add-input::placeholder {
+            color: var(--muted);
+        }
 
-        .add-exercise-wrap { text-align: center; margin-bottom: 8px; }
+        .add-form-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .add-exercise-wrap {
+            text-align: center;
+            margin-bottom: 8px;
+        }
 
         .add-exercise-btn {
             background: none;
@@ -755,7 +938,10 @@
             width: 100%;
         }
 
-        .add-exercise-btn:hover { border-color: var(--green); color: var(--green); }
+        .add-exercise-btn:hover {
+            border-color: var(--green);
+            color: var(--green);
+        }
 
         /* ── RESET ALL ── */
         .reset-wrap {
@@ -800,7 +986,9 @@
             z-index: 150;
         }
 
-        .save-indicator.visible { display: flex; }
+        .save-indicator.visible {
+            display: flex;
+        }
 
         .save-mini-spinner {
             width: 12px;
@@ -853,12 +1041,16 @@
             align-items: center;
             transition: color 0.2s;
         }
-        .header-history-btn:hover { color: var(--accent); }
+
+        .header-history-btn:hover {
+            color: var(--accent);
+        }
 
         /* ── HISTORY OVERLAY ── */
         .history-body {
             display: none;
         }
+
         .history-body.open {
             display: flex;
             position: fixed;
@@ -868,6 +1060,7 @@
             flex-direction: column;
             animation: fadeIn 0.2s ease;
         }
+
         .history-header {
             padding: 16px;
             border-bottom: 1px solid var(--border);
@@ -876,6 +1069,7 @@
             justify-content: space-between;
             flex-shrink: 0;
         }
+
         .history-title {
             font-size: 0.95rem;
             font-weight: 800;
@@ -883,6 +1077,7 @@
             letter-spacing: 0.08em;
             color: var(--accent);
         }
+
         .history-close-btn {
             background: none;
             border: none;
@@ -894,18 +1089,24 @@
             line-height: 1;
             transition: color 0.2s;
         }
-        .history-close-btn:hover { color: var(--text); }
+
+        .history-close-btn:hover {
+            color: var(--text);
+        }
+
         .history-content {
             flex: 1;
             overflow-y: auto;
             padding: 14px 12px;
         }
+
         .history-empty {
             text-align: center;
             color: var(--muted);
             padding: 60px 20px;
             font-size: 0.88rem;
         }
+
         .history-entry {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -913,6 +1114,7 @@
             margin-bottom: 12px;
             overflow: hidden;
         }
+
         .history-entry-header {
             padding: 10px 14px;
             background: var(--card);
@@ -921,11 +1123,13 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .history-entry-date {
             font-size: 0.8rem;
             font-weight: 700;
             color: var(--text);
         }
+
         .history-entry-day {
             font-size: 0.72rem;
             font-weight: 700;
@@ -933,18 +1137,32 @@
             color: var(--accent);
             letter-spacing: 0.06em;
         }
+
         .history-exercise-row {
             display: grid;
             grid-template-columns: 1fr auto auto;
             gap: 10px;
             padding: 8px 14px;
-            border-bottom: 1px solid rgba(51,51,51,0.6);
+            border-bottom: 1px solid rgba(51, 51, 51, 0.6);
             align-items: center;
             font-size: 0.82rem;
         }
-        .history-exercise-row:last-child { border-bottom: none; }
-        .history-ex-name { font-weight: 600; color: var(--text); }
-        .history-ex-meta { color: var(--muted); font-size: 0.75rem; text-align: right; white-space: nowrap; }
+
+        .history-exercise-row:last-child {
+            border-bottom: none;
+        }
+
+        .history-ex-name {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .history-ex-meta {
+            color: var(--muted);
+            font-size: 0.75rem;
+            text-align: right;
+            white-space: nowrap;
+        }
     </style>
 </head>
 
@@ -952,12 +1170,22 @@
 
     <header>
         <button class="header-history-btn" onclick="showHistory()" title="Historial">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
         </button>
         <h1>Leon S. Kennedy</h1>
         <p>Plan de Entrenamiento</p>
         <button class="header-timer-btn" id="header-timer-btn" onclick="toggleTimerSection()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+            </svg>
             <span id="header-timer-time">1:00</span>
         </button>
     </header>
@@ -968,7 +1196,9 @@
         <button class="tab-btn" data-day="3" role="tab">Día 3<span class="badge" id="badge-3"></span></button>
     </div>
 
-    <div class="spinner-wrap" id="spinner"><div class="spinner"></div></div>
+    <div class="spinner-wrap" id="spinner">
+        <div class="spinner"></div>
+    </div>
 
     <div class="history-body" id="history-body">
         <div class="history-header">
@@ -979,21 +1209,52 @@
     </div>
 
     <div class="timer-body" id="timer-body">
-        <button class="timer-close-btn" onclick="toggleTimerSection()">✕</button>
-        <div class="timer-display" id="timer-display">1:00</div>
-        <div class="timer-presets">
-            <button class="timer-preset-btn" onclick="setTimer(30)">30s</button>
-            <button class="timer-preset-btn" onclick="setTimer(40)">40s</button>
-            <button class="timer-preset-btn" onclick="setTimer(60)">1m</button>
-            <button class="timer-preset-btn" onclick="setTimer(120)">2m</button>
+        <button class="timer-close-btn" onclick="toggleTimerSection()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+        </button>
+        <div class="timer-ring-wrap">
+            <svg class="timer-ring" viewBox="0 0 240 240">
+                <circle class="timer-ring-bg" cx="120" cy="120" r="105" />
+                <circle class="timer-ring-progress" id="timer-ring-progress" cx="120" cy="120" r="105" />
+            </svg>
+            <div class="timer-display editable" id="timer-display" onclick="startEditTimer()">1:00</div>
+            <input class="timer-display-input" id="timer-display-input" type="text" onblur="commitEditTimer()"
+                onkeydown="editTimerKey(event)">
         </div>
-        <div class="timer-custom-row">
-            <input class="timer-custom-input" id="timer-custom-input" type="number" min="5" max="600" placeholder="Segundos personalizados">
-            <button class="timer-preset-btn" onclick="setCustomTimer()" style="flex:0;padding:8px 14px">Set</button>
-        </div>
-        <div class="timer-controls">
-            <button class="timer-start-btn" id="timer-start-btn" onclick="startPauseTimer()">Iniciar</button>
-            <button class="timer-reset-btn" onclick="resetTimer()">Reset</button>
+        <div class="timer-bottom">
+            <div class="timer-presets" id="timer-presets-row">
+                <button class="timer-preset-btn" onclick="setTimer(30)">30s</button>
+                <button class="timer-preset-btn" onclick="setTimer(40)">40s</button>
+                <button class="timer-preset-btn" onclick="setTimer(60)">1m</button>
+                <button class="timer-preset-btn" onclick="setTimer(120)">2m</button>
+            </div>
+            <div class="timer-controls" id="timer-ctrl-setting">
+                <button class="timer-start-btn" onclick="startPauseTimer()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                    Iniciar
+                </button>
+            </div>
+            <div class="timer-controls timer-ctrl-active" id="timer-ctrl-active" style="display:none">
+                <button class="timer-icon-btn primary" id="timer-pp-btn" onclick="startPauseTimer()">
+                    <svg id="timer-pp-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="4" width="4" height="16" rx="1" />
+                        <rect x="14" y="4" width="4" height="16" rx="1" />
+                    </svg>
+                </button>
+                <button class="timer-icon-btn" onclick="resetTimer()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="1 4 1 10 7 10" />
+                        <path d="M3.51 15a9 9 0 1 0 .49-4.5" />
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1180,14 +1441,16 @@
         function createCardHTML(id, nombre, series, peso) {
             const pesoClase = peso ? '' : 'empty';
             const pesoMostrar = peso ? peso : '— Peso corporal —';
-            const searchUrl = 'https://www.google.com/search?q=' + encodeURIComponent(nombre + ' ejercicio como hacer');
+            const searchUrl = 'https://www.google.com/search?q=' + encodeURIComponent(nombre + ' ejercicio como hacer') + '&tbm=isch';
             return `
       <div class="exercise-card" data-id="${id}">
         <div class="card-header">
-          <label class="check-wrap">
-            <input type="checkbox" onchange="toggleDone(this)">
-            <div class="check-circle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-          </label>
+          <div class="check-wrap" onclick="cycleCheck(this)">
+            <div class="check-circle">
+              <svg class="icon-done" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg class="icon-progress" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </div>
+          </div>
           <span class="exercise-name">${nombre}</span>
           <input class="name-input" type="text" value="${nombre}">
           <a class="search-btn" href="${searchUrl}" target="_blank" rel="noopener" title="Buscar en Google">
@@ -1252,8 +1515,7 @@
             document.querySelectorAll('.exercise-card').forEach(card => {
                 const s = state[card.dataset.id];
                 if (s && s.done) {
-                    card.querySelector('input[type="checkbox"]').checked = true;
-                    card.classList.add('done');
+                    applyCheckState(card, s.done === true ? 'done' : s.done);
                 }
             });
 
@@ -1293,19 +1555,28 @@
             });
         });
 
-        /* ── DONE TOGGLE ── */
-        function toggleDone(cb) {
-            const card = cb.closest('.exercise-card');
+        /* ── CHECK CYCLE ── */
+        function applyCheckState(card, state) {
+            card.classList.remove('done', 'in-progress');
+            if (state === 'done') card.classList.add('done');
+            else if (state === 'progress') card.classList.add('in-progress');
+        }
+
+        function cycleCheck(el) {
+            const card = el.closest('.exercise-card');
             const id = card.dataset.id;
             const day = parseInt(id.split('-')[0]);
-            card.classList.toggle('done', cb.checked);
+            const newState = card.classList.contains('in-progress') ? 'done'
+                : card.classList.contains('done') ? null
+                    : 'progress';
+            applyCheckState(card, newState);
             const state = loadState();
             state[id] = state[id] || {};
-            state[id].done = cb.checked;
+            state[id].done = newState;
             saveState(state);
             updateProgress(day);
             sortDay(day);
-            pushCheck(id, cb.checked);
+            pushCheck(id, newState);
         }
 
         /* ── SORT ── */
@@ -1320,9 +1591,9 @@
             if (!container) return;
             const cards = [...container.querySelectorAll('.exercise-card')];
             cards.sort((a, b) => {
-                const aDone = a.classList.contains('done') ? 1 : 0;
-                const bDone = b.classList.contains('done') ? 1 : 0;
-                if (aDone !== bDone) return aDone - bDone;
+                const order = c => c.classList.contains('in-progress') ? 0 : c.classList.contains('done') ? 2 : 1;
+                const diff = order(a) - order(b);
+                if (diff !== 0) return diff;
                 return getIdOrder(a.dataset.id) - getIdOrder(b.dataset.id);
             });
             cards.forEach(c => container.appendChild(c));
@@ -1386,6 +1657,7 @@
             updateField(fields[1], peso);
             card.querySelector('.exercise-name').textContent = nombre;
             nameInput.value = nombre;
+            card.querySelector('.search-btn').href = 'https://www.google.com/search?q=' + encodeURIComponent(nombre + ' ejercicio como hacer') + '&tbm=isch';
             closeEditBar(card);
 
             saveToFirebase();
@@ -1417,17 +1689,16 @@
             const state = loadState();
             const patch = {};
             cards.forEach(card => {
-                card.classList.remove('done');
-                card.querySelector('input[type="checkbox"]').checked = false;
+                card.classList.remove('done', 'in-progress');
                 const id = card.dataset.id;
-                if (state[id]) state[id].done = false;
-                patch[id] = false;
+                if (state[id]) state[id].done = null;
+                patch[id] = null;
             });
             saveState(state);
             updateProgress(day);
             sortDay(day);
             showToast('Día ' + day + ' reiniciado');
-            fetch(`${FIREBASE_URL}/checks.json`, { method: 'PATCH', body: JSON.stringify(patch) }).catch(() => {});
+            fetch(`${FIREBASE_URL}/checks.json`, { method: 'PATCH', body: JSON.stringify(patch) }).catch(() => { });
         }
 
         function showSaveIndicator() { document.getElementById('save-indicator').classList.add('visible'); }
@@ -1520,22 +1791,22 @@
             fetch(`${FIREBASE_URL}/checks.json`, {
                 method: 'PATCH',
                 body: JSON.stringify({ [id]: checked })
-            }).catch(() => {});
+            }).catch(() => { });
         }
 
         function applyChecks(checksData) {
             if (!checksData) return;
             const state = loadState();
             const days = new Set();
-            Object.entries(checksData).forEach(([id, checked]) => {
+            Object.entries(checksData).forEach(([id, checkVal]) => {
                 const card = document.querySelector(`.exercise-card[data-id="${id}"]`);
                 if (!card) return;
-                const cb = card.querySelector('input[type="checkbox"]');
-                if (cb.checked === checked) return;
-                cb.checked = checked;
-                card.classList.toggle('done', checked);
+                const newState = checkVal === true ? 'done' : (checkVal || null);
+                const curState = card.classList.contains('done') ? 'done' : card.classList.contains('in-progress') ? 'progress' : null;
+                if (curState === newState) return;
+                applyCheckState(card, newState);
                 state[id] = state[id] || {};
-                state[id].done = checked;
+                state[id].done = newState;
                 days.add(parseInt(id.split('-')[0]));
             });
             saveState(state);
@@ -1735,9 +2006,19 @@
         }
 
         /* ── TIMER ── */
+        let _audioCtx = null;
+        function getAudioCtx() {
+            if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (_audioCtx.state === 'suspended') _audioCtx.resume();
+            return _audioCtx;
+        }
+        // Inicializar AudioContext en primer gesto para evitar suspensión
+        document.addEventListener('click', () => getAudioCtx(), { once: true });
+        document.addEventListener('touchstart', () => getAudioCtx(), { once: true });
+
         function playTimerSound() {
             try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const ctx = getAudioCtx();
                 [0, 0.18, 0.36].forEach(offset => {
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
@@ -1777,12 +2058,12 @@
         let timerDuration = parseInt(localStorage.getItem('lsk_timer_duration')) || 60;
         let timerRemaining = timerDuration;
         let timerRunning = false;
-        let timerStartedAt = null;   // ms timestamp del inicio del segmento actual
-        let timerBaseRemaining = timerDuration; // segundos restantes en el momento de timerStartedAt
+        let timerStartedAt = null;
+        let timerBaseRemaining = timerDuration;
         let timerRAF = null;
         let timerEventSource = null;
+        let timerPhase = 'setting'; // 'setting' | 'running' | 'paused' | 'alarm'
 
-        // Marcar preset activo según duración guardada
         (function () {
             const presets = [30, 40, 60, 120];
             document.querySelectorAll('.timer-preset-btn').forEach((b, i) => {
@@ -1793,11 +2074,14 @@
         let timerAlarmInterval = null;
 
         function startAlarm() {
+            timerPhase = 'alarm';
             playTimerSound();
             timerAlarmInterval = setInterval(playTimerSound, 1000);
-            document.addEventListener('click', stopAlarmSync);
-            document.addEventListener('touchstart', stopAlarmSync);
-            document.addEventListener('keydown', stopAlarmSync);
+            setTimeout(() => {
+                document.addEventListener('click', stopAlarmSync);
+                document.addEventListener('touchstart', stopAlarmSync);
+                document.addEventListener('keydown', stopAlarmSync);
+            }, 300);
         }
 
         function stopAlarm() {
@@ -1811,15 +2095,24 @@
 
         function stopAlarmSync() {
             stopAlarm();
-            pushTimerState({ duration: timerDuration, remaining: 0, startedAt: null, running: false, open: false });
+            cancelAnimationFrame(timerRAF);
+            timerRunning = false;
+            timerRemaining = timerDuration;
+            timerBaseRemaining = timerDuration;
+            timerStartedAt = null;
+            timerPhase = 'setting';
+            updateTimerDisplay();
+            pushTimerState({ duration: timerDuration, remaining: timerDuration, startedAt: null, running: false });
         }
 
         function toggleTimerSection() {
             const body = document.getElementById('timer-body');
             const closing = body.classList.contains('open');
+            if (closing && (timerPhase === 'running' || timerPhase === 'alarm')) return;
             body.classList.toggle('open');
             if (closing) {
                 stopAlarm();
+                timerPhase = 'setting';
                 pushTimerState({ duration: timerDuration, remaining: timerRemaining, startedAt: timerStartedAt, running: timerRunning, open: false });
             }
         }
@@ -1829,23 +2122,57 @@
             return m > 0 ? `${m}:${String(s % 60).padStart(2, '0')}` : `${s}s`;
         }
 
+        function updateTimerUI() {
+            const isSetting = timerPhase === 'setting';
+            const isRunning = timerPhase === 'running';
+            const isAlarm = timerPhase === 'alarm';
+            const isActive = timerPhase === 'running' || timerPhase === 'paused';
+
+            document.getElementById('timer-presets-row').style.display = isSetting ? '' : 'none';
+            document.getElementById('timer-ctrl-setting').style.display = isSetting ? '' : 'none';
+            document.getElementById('timer-ctrl-active').style.display = isActive ? '' : 'none';
+
+            if (isActive) {
+                document.getElementById('timer-pp-icon').innerHTML = isRunning
+                    ? '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>'
+                    : '<polygon points="5 3 19 12 5 21 5 3"/>';
+            }
+
+            const closeBtn = document.querySelector('.timer-close-btn');
+            const canClose = !isRunning && !isAlarm;
+            closeBtn.style.opacity = canClose ? '' : '0.2';
+            closeBtn.style.pointerEvents = canClose ? '' : 'none';
+
+            document.getElementById('timer-display').classList.toggle('editable', isSetting);
+        }
+
         function updateTimerDisplay() {
             const text = formatTime(timerRemaining);
+            const isAlarm = timerPhase === 'alarm';
+            const isRunning = timerPhase === 'running';
             document.getElementById('timer-display').textContent = text;
             document.getElementById('header-timer-time').textContent = text;
             const disp = document.getElementById('timer-display');
-            disp.classList.toggle('running', timerRunning);
-            disp.classList.toggle('done', !timerRunning && timerRemaining === 0);
-            document.getElementById('header-timer-btn').classList.toggle('running', timerRunning);
-            document.getElementById('timer-start-btn').textContent =
-                timerRunning ? 'Pausar' : timerRemaining <= 0 ? 'Reiniciar' : 'Iniciar';
+            disp.classList.toggle('running', isRunning);
+            disp.classList.toggle('done', isAlarm);
+            document.getElementById('header-timer-btn').classList.toggle('running', isRunning);
+
+            const ring = document.getElementById('timer-ring-progress');
+            if (ring) {
+                const circumference = 2 * Math.PI * 105;
+                const pct = isAlarm ? 1 : (timerDuration > 0 ? timerRemaining / timerDuration : 0);
+                ring.style.strokeDashoffset = circumference * (1 - pct);
+                ring.classList.toggle('done', isAlarm);
+            }
+
+            updateTimerUI();
         }
 
         function pushTimerState(state) {
             fetch(`${FIREBASE_URL}/timer.json`, {
                 method: 'PUT',
                 body: JSON.stringify({ ...state, updatedBy: TIMER_CLIENT_ID })
-            }).catch(() => {});
+            }).catch(() => { });
         }
 
         function startDisplayLoop() {
@@ -1857,8 +2184,8 @@
                 if (raw <= 0) {
                     timerRunning = false;
                     timerRemaining = 0;
-                    updateTimerDisplay();
                     startAlarm();
+                    updateTimerDisplay();
                     if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
                     pushTimerState({ duration: timerDuration, remaining: 0, startedAt: null, running: false });
                     return;
@@ -1880,14 +2207,17 @@
                 const raw = state.remaining - (serverNow() - state.startedAt) / 1000;
                 timerRemaining = Math.max(0, Math.ceil(raw));
                 if (raw > 0) {
+                    timerPhase = 'running';
                     document.getElementById('timer-body').classList.add('open');
                     startDisplayLoop();
                 } else {
                     timerRemaining = 0;
                     timerRunning = false;
+                    timerPhase = 'setting';
                 }
             } else {
                 timerRemaining = state.remaining;
+                timerPhase = (state.remaining > 0 && state.remaining < state.duration) ? 'paused' : 'setting';
             }
 
             const presets = [30, 40, 60, 120];
@@ -1897,6 +2227,7 @@
             if (state.open === false) {
                 document.getElementById('timer-body').classList.remove('open');
                 stopAlarm();
+                timerPhase = 'setting';
             }
             updateTimerDisplay();
         }
@@ -1912,54 +2243,90 @@
             });
         }
 
-        function setTimer(seconds) {
+        function applyTimerSeconds(seconds) {
             cancelAnimationFrame(timerRAF);
+            stopAlarm();
+            timerPhase = 'setting';
             timerRunning = false;
             timerDuration = seconds;
             timerRemaining = seconds;
             timerBaseRemaining = seconds;
             timerStartedAt = null;
             localStorage.setItem('lsk_timer_duration', seconds);
-            document.querySelectorAll('.timer-preset-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
             updateTimerDisplay();
             pushTimerState({ duration: seconds, remaining: seconds, startedAt: null, running: false });
         }
 
-        function setCustomTimer() {
-            const val = parseInt(document.getElementById('timer-custom-input').value);
-            if (!val || val < 1) return;
-            cancelAnimationFrame(timerRAF);
-            timerRunning = false;
-            timerDuration = val;
-            timerRemaining = val;
-            timerBaseRemaining = val;
-            timerStartedAt = null;
-            localStorage.setItem('lsk_timer_duration', val);
+        function setTimer(seconds) {
+            applyTimerSeconds(seconds);
             document.querySelectorAll('.timer-preset-btn').forEach(b => b.classList.remove('active'));
-            updateTimerDisplay();
-            pushTimerState({ duration: val, remaining: val, startedAt: null, running: false });
+            event.target.classList.add('active');
+        }
+
+
+        function parseTimerInput(val) {
+            val = (val || '').trim();
+            const mmss = val.match(/^(\d+):(\d{1,2})$/);
+            if (mmss) return parseInt(mmss[1]) * 60 + parseInt(mmss[2]);
+            const n = parseInt(val);
+            return isNaN(n) ? null : n;
+        }
+
+        function startEditTimer() {
+            if (timerPhase !== 'setting') return;
+            const disp = document.getElementById('timer-display');
+            const input = document.getElementById('timer-display-input');
+            input.value = timerRemaining >= 60
+                ? `${Math.floor(timerRemaining / 60)}:${String(timerRemaining % 60).padStart(2, '0')}`
+                : String(timerRemaining);
+            disp.style.display = 'none';
+            input.style.display = 'block';
+            input.select();
+            input.focus();
+        }
+
+        function commitEditTimer() {
+            const input = document.getElementById('timer-display-input');
+            const disp = document.getElementById('timer-display');
+            const secs = parseTimerInput(input.value);
+            if (secs && secs >= 1 && secs <= 3600) {
+                const presets = [30, 40, 60, 120];
+                document.querySelectorAll('.timer-preset-btn').forEach((b, i) => {
+                    b.classList.toggle('active', presets[i] === secs);
+                });
+                applyTimerSeconds(secs);
+            }
+            input.style.display = 'none';
+            disp.style.display = '';
+        }
+
+        function cancelEditTimer() {
+            document.getElementById('timer-display-input').style.display = 'none';
+            document.getElementById('timer-display').style.display = '';
+        }
+
+        function editTimerKey(e) {
+            if (e.key === 'Enter') { e.preventDefault(); commitEditTimer(); }
+            if (e.key === 'Escape') cancelEditTimer();
         }
 
         function startPauseTimer() {
-            if (timerRunning) {
+            if (timerPhase === 'running') {
                 cancelAnimationFrame(timerRAF);
                 timerRunning = false;
                 const raw = timerBaseRemaining - (serverNow() - timerStartedAt) / 1000;
                 timerRemaining = Math.max(0, Math.ceil(raw));
                 timerBaseRemaining = timerRemaining;
                 timerStartedAt = null;
+                timerPhase = 'paused';
                 updateTimerDisplay();
                 pushTimerState({ duration: timerDuration, remaining: timerRemaining, startedAt: null, running: false });
             } else {
-                if (timerRemaining <= 0) {
-                    timerRemaining = timerDuration;
-                    timerBaseRemaining = timerDuration;
-                } else {
-                    timerBaseRemaining = timerRemaining;
-                }
+                timerBaseRemaining = timerRemaining > 0 ? timerRemaining : timerDuration;
+                timerRemaining = timerBaseRemaining;
                 timerRunning = true;
                 timerStartedAt = serverNow();
+                timerPhase = 'running';
                 startDisplayLoop();
                 updateTimerDisplay();
                 pushTimerState({ duration: timerDuration, remaining: timerBaseRemaining, startedAt: timerStartedAt, running: true, open: true });
@@ -1967,11 +2334,13 @@
         }
 
         function resetTimer() {
+            stopAlarm();
             cancelAnimationFrame(timerRAF);
             timerRunning = false;
             timerRemaining = timerDuration;
             timerBaseRemaining = timerDuration;
             timerStartedAt = null;
+            timerPhase = 'setting';
             updateTimerDisplay();
             pushTimerState({ duration: timerDuration, remaining: timerDuration, startedAt: null, running: false });
         }
