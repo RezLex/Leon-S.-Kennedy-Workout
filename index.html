@@ -2197,6 +2197,7 @@
 
         function applyTimerState(state) {
             if (!state) return;
+            stopAlarm();
             cancelAnimationFrame(timerRAF);
             timerDuration = state.duration;
             timerRunning = state.running;
