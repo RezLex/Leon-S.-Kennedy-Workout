@@ -871,6 +871,89 @@
             background: rgba(230, 57, 70, 0.1);
         }
 
+        /* Rep controls */
+        .exercise-card.in-progress .edit-btn,
+        .exercise-card.in-progress .delete-btn {
+            display: none;
+        }
+
+        .rep-controls {
+            display: none;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .exercise-card.in-progress .rep-controls {
+            display: flex;
+        }
+
+        .rep-btn {
+            background: rgba(243, 156, 18, 0.15);
+            border: 1px solid rgba(243, 156, 18, 0.4);
+            color: #f39c12;
+            cursor: pointer;
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+
+        .rep-btn:hover {
+            background: rgba(243, 156, 18, 0.35);
+        }
+
+        .rep-count {
+            min-width: 28px;
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #f39c12;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .reps-popover {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.78rem;
+            white-space: nowrap;
+            z-index: 20;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+            line-height: 1.8;
+        }
+
+        .reps-popover.open {
+            display: block;
+        }
+
+        .reps-popover-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .reps-popover-row .reps-label {
+            color: var(--muted);
+        }
+
+        .reps-popover-row .reps-val {
+            font-weight: 700;
+            color: #f39c12;
+        }
+
         /* ── ADD FORM ── */
         .add-form {
             display: none;
@@ -1380,8 +1463,16 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        const STORE_KEY = 'lsk_rutina_v2';
         let TOTALS = { 1: 0, 2: 0, 3: 0 };
+
+        function getDeviceId() {
+            let id = localStorage.getItem('lsk_device_id');
+            if (!id) {
+                id = 'dev-' + Math.random().toString(36).slice(2, 10);
+                localStorage.setItem('lsk_device_id', id);
+            }
+            return id;
+        }
 
         /* ── LOAD DATA ── */
         function showSpinner() {
@@ -1405,6 +1496,7 @@
                         init();
                         const chResp = await fetch(`${FIREBASE_URL}/checks.json`);
                         if (chResp.ok) { const ch = await chResp.json(); if (ch) applyChecks(ch); }
+                        await fetchAndApplyReps();
                         routineInitialized = true;
                         return;
                     }
@@ -1462,6 +1554,12 @@
           <button class="delete-btn" onclick="deleteExercise(this)" title="Eliminar">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
           </button>
+          <div class="rep-controls">
+            <button class="rep-btn" onclick="changeReps(this,-1)" title="Restar rep">−</button>
+            <span class="rep-count" onclick="toggleRepsPopover(this)">0</span>
+            <button class="rep-btn" onclick="changeReps(this,1)" title="Agregar rep">+</button>
+            <div class="reps-popover"></div>
+          </div>
         </div>
         <div class="card-fields">
           <div class="field-group"><div class="field-label">Series / Reps</div><div class="field-value">${series}</div><input class="field-input" type="text" value="${series}"></div>
@@ -1502,23 +1600,8 @@
         }
 
         /* ── PERSISTENCE (solo done states) ── */
-        function loadState() {
-            try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; }
-        }
-        function saveState(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
-
         /* ── INIT ── */
         function init() {
-            const state = loadState();
-
-            // Solo restaurar checks (por dispositivo)
-            document.querySelectorAll('.exercise-card').forEach(card => {
-                const s = state[card.dataset.id];
-                if (s && s.done) {
-                    applyCheckState(card, s.done === true ? 'done' : s.done);
-                }
-            });
-
             // Restaurar última tab
             const lastTab = localStorage.getItem('lsk_last_tab');
             if (lastTab && document.getElementById('day-' + lastTab)) {
@@ -1557,9 +1640,14 @@
 
         /* ── CHECK CYCLE ── */
         function applyCheckState(card, state) {
+            const wasInProgress = card.classList.contains('in-progress');
             card.classList.remove('done', 'in-progress');
             if (state === 'done') card.classList.add('done');
             else if (state === 'progress') card.classList.add('in-progress');
+            if (wasInProgress && state !== 'progress') {
+                card.querySelector('.rep-count').textContent = '0';
+                fetch(`${FIREBASE_URL}/reps/${card.dataset.id}.json`, { method: 'DELETE' }).catch(() => {});
+            }
         }
 
         function cycleCheck(el) {
@@ -1570,13 +1658,90 @@
                 : card.classList.contains('done') ? null
                     : 'progress';
             applyCheckState(card, newState);
-            const state = loadState();
-            state[id] = state[id] || {};
-            state[id].done = newState;
-            saveState(state);
             updateProgress(day);
             sortDay(day);
             pushCheck(id, newState);
+        }
+
+        const repsData = {};
+
+        function changeReps(btn, delta) {
+            const card = btn.closest('.exercise-card');
+            const id = card.dataset.id;
+            const countEl = card.querySelector('.rep-count');
+            const next = Math.max(0, (parseInt(countEl.textContent) || 0) + delta);
+            countEl.textContent = next;
+            if (!repsData[id]) repsData[id] = {};
+            repsData[id][getDeviceId()] = next;
+            fetch(`${FIREBASE_URL}/reps/${id}/${getDeviceId()}.json`, {
+                method: 'PUT',
+                body: JSON.stringify(next)
+            }).catch(() => {});
+        }
+
+        function toggleRepsPopover(countEl) {
+            const popover = countEl.closest('.rep-controls').querySelector('.reps-popover');
+            if (popover.classList.contains('open')) {
+                popover.classList.remove('open');
+                return;
+            }
+            const id = countEl.closest('.exercise-card').dataset.id;
+            const deviceId = getDeviceId();
+            const devices = repsData[id] || {};
+            let html = '';
+            let idx = 1;
+            Object.entries(devices).forEach(([dev, count]) => {
+                const label = dev === deviceId ? 'Tú' : `Disp. ${idx++}`;
+                html += `<div class="reps-popover-row"><span class="reps-label">${label}</span><span class="reps-val">${count} reps</span></div>`;
+            });
+            if (!html) html = `<div class="reps-popover-row"><span class="reps-label">Tú</span><span class="reps-val">${countEl.textContent} reps</span></div>`;
+            popover.innerHTML = html;
+            popover.classList.add('open');
+        }
+
+        document.addEventListener('click', e => {
+            if (!e.target.classList.contains('rep-count')) {
+                document.querySelectorAll('.reps-popover.open').forEach(p => p.classList.remove('open'));
+            }
+        });
+
+        function initRepsSync() {
+            const src = new EventSource(`${FIREBASE_URL}/reps.json`);
+            src.addEventListener('put', e => {
+                const msg = JSON.parse(e.data);
+                if (!msg.data) { Object.keys(repsData).forEach(k => delete repsData[k]); return; }
+                Object.assign(repsData, msg.data);
+            });
+            src.addEventListener('patch', e => {
+                const msg = JSON.parse(e.data);
+                if (!msg.data) return;
+                Object.entries(msg.data).forEach(([id, devices]) => {
+                    if (devices === null) { delete repsData[id]; return; }
+                    repsData[id] = Object.assign(repsData[id] || {}, devices);
+                    const card = document.querySelector(`.exercise-card[data-id="${id}"]`);
+                    if (!card || !card.classList.contains('in-progress')) return;
+                    if (devices[getDeviceId()] != null) {
+                        card.querySelector('.rep-count').textContent = devices[getDeviceId()];
+                    }
+                });
+            });
+        }
+
+        async function fetchAndApplyReps() {
+            try {
+                const resp = await fetch(`${FIREBASE_URL}/reps.json`);
+                if (!resp.ok) return;
+                const data = await resp.json();
+                if (!data) return;
+                Object.assign(repsData, data);
+                const deviceId = getDeviceId();
+                Object.entries(data).forEach(([exerciseId, devices]) => {
+                    if (!devices || devices[deviceId] == null) return;
+                    const card = document.querySelector(`.exercise-card[data-id="${exerciseId}"]`);
+                    if (!card || !card.classList.contains('in-progress')) return;
+                    card.querySelector('.rep-count').textContent = devices[deviceId];
+                });
+            } catch {}
         }
 
         /* ── SORT ── */
@@ -1686,15 +1851,11 @@
         /* ── RESET ── */
         function resetDay(day) {
             const cards = document.querySelectorAll(`#exercises-${day} .exercise-card`);
-            const state = loadState();
             const patch = {};
             cards.forEach(card => {
                 card.classList.remove('done', 'in-progress');
-                const id = card.dataset.id;
-                if (state[id]) state[id].done = null;
-                patch[id] = null;
+                patch[card.dataset.id] = null;
             });
-            saveState(state);
             updateProgress(day);
             sortDay(day);
             showToast('Día ' + day + ' reiniciado');
@@ -1796,7 +1957,6 @@
 
         function applyChecks(checksData) {
             if (!checksData) return;
-            const state = loadState();
             const days = new Set();
             Object.entries(checksData).forEach(([id, checkVal]) => {
                 const card = document.querySelector(`.exercise-card[data-id="${id}"]`);
@@ -1805,11 +1965,8 @@
                 const curState = card.classList.contains('done') ? 'done' : card.classList.contains('in-progress') ? 'progress' : null;
                 if (curState === newState) return;
                 applyCheckState(card, newState);
-                state[id] = state[id] || {};
-                state[id].done = newState;
                 days.add(parseInt(id.split('-')[0]));
             });
-            saveState(state);
             days.forEach(day => { updateProgress(day); sortDay(day); });
         }
 
@@ -1842,9 +1999,6 @@
             const card = btn.closest('.exercise-card');
             const id = card.dataset.id;
             const dia = parseInt(id.split('-')[0]);
-            const state = loadState();
-            delete state[id];
-            saveState(state);
             TOTALS[dia] = Math.max(0, (TOTALS[dia] || 0) - 1);
             card.remove();
             updateProgress(dia);
@@ -1899,7 +2053,6 @@
 
         async function resetToOrigin() {
             document.getElementById('origin-confirm-bar').classList.remove('open');
-            localStorage.removeItem(STORE_KEY);
             localStorage.removeItem('lsk_last_tab');
             const csvResp = await fetch('./data.csv');
             renderExercises(await csvResp.text());
@@ -2358,6 +2511,7 @@
         initTimerSync();
         initChecksSync();
         initRoutineSync();
+        initRepsSync();
     </script>
 </body>
 
