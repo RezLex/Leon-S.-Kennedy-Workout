@@ -122,6 +122,16 @@
             display: block;
         }
 
+        @keyframes rep-pulse {
+            0%   { opacity: 1; }
+            40%  { opacity: 0.3; color: #f39c12; }
+            100% { opacity: 1; }
+        }
+
+        .rep-others.pulse {
+            animation: rep-pulse 0.4s ease;
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -879,14 +889,14 @@
 
         .rep-controls {
             display: none;
-            align-items: center;
-            gap: 4px;
+            grid-template-columns: 26px 1fr 26px;
+            gap: 2px 4px;
             flex-shrink: 0;
-            position: relative;
+            align-items: center;
         }
 
         .exercise-card.in-progress .rep-controls {
-            display: flex;
+            display: grid;
         }
 
         .rep-btn {
@@ -909,49 +919,26 @@
             background: rgba(243, 156, 18, 0.35);
         }
 
-        .rep-count {
-            min-width: 28px;
-            text-align: center;
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #f39c12;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .reps-popover {
-            display: none;
-            position: absolute;
-            top: calc(100% + 8px);
-            right: 0;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 0.78rem;
-            white-space: nowrap;
-            z-index: 20;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.35);
-            line-height: 1.8;
-        }
-
-        .reps-popover.open {
-            display: block;
-        }
-
-        .reps-popover-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 16px;
-        }
-
-        .reps-popover-row .reps-label {
+        .rep-label-me {
+            font-size: 0.82rem;
             color: var(--muted);
+            white-space: nowrap;
+            text-align: center;
+            min-width: 56px;
         }
 
-        .reps-popover-row .reps-val {
-            font-weight: 700;
+        .rep-count {
+            font-variant-numeric: tabular-nums;
             color: #f39c12;
+            font-weight: 700;
+        }
+
+        .rep-others {
+            grid-column: 2;
+            font-size: 0.72rem;
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.5;
         }
 
         /* ── ADD FORM ── */
@@ -1556,9 +1543,9 @@
           </button>
           <div class="rep-controls">
             <button class="rep-btn" onclick="changeReps(this,-1)" title="Restar rep">−</button>
-            <span class="rep-count" onclick="toggleRepsPopover(this)">0</span>
+            <span class="rep-label-me"><span class="rep-count">0</span> reps</span>
             <button class="rep-btn" onclick="changeReps(this,1)" title="Agregar rep">+</button>
-            <div class="reps-popover"></div>
+            <div class="rep-others"></div>
           </div>
         </div>
         <div class="card-fields">
@@ -1646,6 +1633,7 @@
             else if (state === 'progress') card.classList.add('in-progress');
             if (wasInProgress && state !== 'progress') {
                 card.querySelector('.rep-count').textContent = '0';
+                card.querySelector('.rep-others').textContent = '';
                 fetch(`${FIREBASE_URL}/reps/${card.dataset.id}.json`, { method: 'DELETE' }).catch(() => {});
             }
         }
@@ -1679,31 +1667,17 @@
             }).catch(() => {});
         }
 
-        function toggleRepsPopover(countEl) {
-            const popover = countEl.closest('.rep-controls').querySelector('.reps-popover');
-            if (popover.classList.contains('open')) {
-                popover.classList.remove('open');
-                return;
-            }
-            const id = countEl.closest('.exercise-card').dataset.id;
+        function renderOtherReps(card, id) {
             const deviceId = getDeviceId();
             const devices = repsData[id] || {};
-            let html = '';
-            let idx = 1;
-            Object.entries(devices).forEach(([dev, count]) => {
-                const label = dev === deviceId ? 'Tú' : `Disp. ${idx++}`;
-                html += `<div class="reps-popover-row"><span class="reps-label">${label}</span><span class="reps-val">${count} reps</span></div>`;
-            });
-            if (!html) html = `<div class="reps-popover-row"><span class="reps-label">Tú</span><span class="reps-val">${countEl.textContent} reps</span></div>`;
-            popover.innerHTML = html;
-            popover.classList.add('open');
+            const others = Object.entries(devices).filter(([dev]) => dev !== deviceId);
+            const othersEl = card.querySelector('.rep-others');
+            if (!others.length) { othersEl.textContent = ''; return; }
+            const label = idx => others.length > 1 ? `Otro ${idx + 1}` : 'Otro';
+            othersEl.innerHTML = others.map(([, count], i) =>
+                `${label(i)}: <strong style="color:#f39c12">${count}</strong> reps`
+            ).join('<br>');
         }
-
-        document.addEventListener('click', e => {
-            if (!e.target.classList.contains('rep-count')) {
-                document.querySelectorAll('.reps-popover.open').forEach(p => p.classList.remove('open'));
-            }
-        });
 
         function initRepsSync() {
             const src = new EventSource(`${FIREBASE_URL}/reps.json`);
@@ -1715,13 +1689,26 @@
             src.addEventListener('patch', e => {
                 const msg = JSON.parse(e.data);
                 if (!msg.data) return;
+                const deviceId = getDeviceId();
                 Object.entries(msg.data).forEach(([id, devices]) => {
                     if (devices === null) { delete repsData[id]; return; }
                     repsData[id] = Object.assign(repsData[id] || {}, devices);
+
                     const card = document.querySelector(`.exercise-card[data-id="${id}"]`);
                     if (!card || !card.classList.contains('in-progress')) return;
-                    if (devices[getDeviceId()] != null) {
-                        card.querySelector('.rep-count').textContent = devices[getDeviceId()];
+
+                    if (devices[deviceId] != null) {
+                        card.querySelector('.rep-count').textContent = devices[deviceId];
+                    }
+
+                    const fromOther = Object.keys(devices).some(dev => dev !== deviceId);
+                    if (fromOther) {
+                        renderOtherReps(card, id);
+                        const othersEl = card.querySelector('.rep-others');
+                        othersEl.classList.remove('pulse');
+                        void othersEl.offsetWidth;
+                        othersEl.classList.add('pulse');
+                        othersEl.addEventListener('animationend', () => othersEl.classList.remove('pulse'), { once: true });
                     }
                 });
             });
@@ -1736,10 +1723,13 @@
                 Object.assign(repsData, data);
                 const deviceId = getDeviceId();
                 Object.entries(data).forEach(([exerciseId, devices]) => {
-                    if (!devices || devices[deviceId] == null) return;
+                    if (!devices) return;
                     const card = document.querySelector(`.exercise-card[data-id="${exerciseId}"]`);
                     if (!card || !card.classList.contains('in-progress')) return;
-                    card.querySelector('.rep-count').textContent = devices[deviceId];
+                    if (devices[deviceId] != null) {
+                        card.querySelector('.rep-count').textContent = devices[deviceId];
+                    }
+                    renderOtherReps(card, exerciseId);
                 });
             } catch {}
         }
