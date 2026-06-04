@@ -496,6 +496,20 @@
             display: flex;
         }
 
+        #db-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #db-overlay.visible {
+            display: flex;
+        }
+
         .spinner {
             width: 36px;
             height: 36px;
@@ -1270,6 +1284,10 @@
         <div class="spinner"></div>
     </div>
 
+    <div id="db-overlay">
+        <div class="spinner"></div>
+    </div>
+
     <div class="history-body" id="history-body">
         <div class="history-header">
             <span class="history-title">Historial</span>
@@ -1461,6 +1479,11 @@
             return id;
         }
 
+        let _dbCount = 0;
+        const _dbEl = () => document.getElementById('db-overlay');
+        function dbStart() { if (++_dbCount === 1) _dbEl().classList.add('visible'); }
+        function dbEnd()   { if (--_dbCount <= 0) { _dbCount = 0; _dbEl().classList.remove('visible'); } }
+
         /* ── LOAD DATA ── */
         function showSpinner() {
             document.getElementById('spinner').classList.add('visible');
@@ -1483,7 +1506,7 @@
                         init();
                         const chResp = await fetch(`${FIREBASE_URL}/checks.json`);
                         if (chResp.ok) { const ch = await chResp.json(); if (ch) applyChecks(ch); }
-                        await fetchAndApplyReps();
+                        await fetchAndApplySeries();
                         routineInitialized = true;
                         return;
                     }
@@ -1542,9 +1565,9 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
           </button>
           <div class="rep-controls">
-            <button class="rep-btn" onclick="changeReps(this,-1)" title="Restar rep">−</button>
-            <span class="rep-label-me"><span class="rep-count">0</span> reps</span>
-            <button class="rep-btn" onclick="changeReps(this,1)" title="Agregar rep">+</button>
+            <button class="rep-btn" onclick="changeSeries(this,-1)" title="Restar rep">−</button>
+            <span class="rep-label-me"><span class="rep-count">0</span> series</span>
+            <button class="rep-btn" onclick="changeSeries(this,1)" title="Agregar rep">+</button>
             <div class="rep-others"></div>
           </div>
         </div>
@@ -1634,7 +1657,9 @@
             if (wasInProgress && state !== 'progress') {
                 card.querySelector('.rep-count').textContent = '0';
                 card.querySelector('.rep-others').textContent = '';
-                fetch(`${FIREBASE_URL}/reps/${card.dataset.id}.json`, { method: 'DELETE' }).catch(() => {});
+                dbStart();
+                fetch(`${FIREBASE_URL}/series/${card.dataset.id}.json`, { method: 'DELETE' })
+                    .catch(() => {}).finally(() => dbEnd());
             }
         }
 
@@ -1651,48 +1676,53 @@
             pushCheck(id, newState);
         }
 
-        const repsData = {};
+        const seriesData = {};
 
-        function changeReps(btn, delta) {
+        async function changeSeries(btn, delta) {
             const card = btn.closest('.exercise-card');
             const id = card.dataset.id;
             const countEl = card.querySelector('.rep-count');
             const next = Math.max(0, (parseInt(countEl.textContent) || 0) + delta);
             countEl.textContent = next;
-            if (!repsData[id]) repsData[id] = {};
-            repsData[id][getDeviceId()] = next;
-            fetch(`${FIREBASE_URL}/reps/${id}/${getDeviceId()}.json`, {
-                method: 'PUT',
-                body: JSON.stringify(next)
-            }).catch(() => {});
+            if (!seriesData[id]) seriesData[id] = {};
+            seriesData[id][getDeviceId()] = next;
+            dbStart();
+            try {
+                await fetch(`${FIREBASE_URL}/series/${id}/${getDeviceId()}.json`, {
+                    method: 'PUT',
+                    body: JSON.stringify(next)
+                });
+            } catch {} finally {
+                dbEnd();
+            }
         }
 
-        function renderOtherReps(card, id) {
+        function renderOtherSeries(card, id) {
             const deviceId = getDeviceId();
-            const devices = repsData[id] || {};
+            const devices = seriesData[id] || {};
             const others = Object.entries(devices).filter(([dev]) => dev !== deviceId);
             const othersEl = card.querySelector('.rep-others');
             if (!others.length) { othersEl.textContent = ''; return; }
             const label = idx => others.length > 1 ? `Otro ${idx + 1}` : 'Otro';
             othersEl.innerHTML = others.map(([, count], i) =>
-                `${label(i)}: <strong style="color:#f39c12">${count}</strong> reps`
+                `${label(i)}: <strong style="color:#f39c12">${count}</strong> series`
             ).join('<br>');
         }
 
-        function initRepsSync() {
-            const src = new EventSource(`${FIREBASE_URL}/reps.json`);
+        function initSeriesSync() {
+            const src = new EventSource(`${FIREBASE_URL}/series.json`);
             src.addEventListener('put', e => {
                 const msg = JSON.parse(e.data);
-                if (!msg.data) { Object.keys(repsData).forEach(k => delete repsData[k]); return; }
-                Object.assign(repsData, msg.data);
+                if (!msg.data) { Object.keys(seriesData).forEach(k => delete seriesData[k]); return; }
+                Object.assign(seriesData, msg.data);
             });
             src.addEventListener('patch', e => {
                 const msg = JSON.parse(e.data);
                 if (!msg.data) return;
                 const deviceId = getDeviceId();
                 Object.entries(msg.data).forEach(([id, devices]) => {
-                    if (devices === null) { delete repsData[id]; return; }
-                    repsData[id] = Object.assign(repsData[id] || {}, devices);
+                    if (devices === null) { delete seriesData[id]; return; }
+                    seriesData[id] = Object.assign(seriesData[id] || {}, devices);
 
                     const card = document.querySelector(`.exercise-card[data-id="${id}"]`);
                     if (!card || !card.classList.contains('in-progress')) return;
@@ -1703,7 +1733,7 @@
 
                     const fromOther = Object.keys(devices).some(dev => dev !== deviceId);
                     if (fromOther) {
-                        renderOtherReps(card, id);
+                        renderOtherSeries(card, id);
                         const othersEl = card.querySelector('.rep-others');
                         othersEl.classList.remove('pulse');
                         void othersEl.offsetWidth;
@@ -1714,13 +1744,13 @@
             });
         }
 
-        async function fetchAndApplyReps() {
+        async function fetchAndApplySeries() {
             try {
-                const resp = await fetch(`${FIREBASE_URL}/reps.json`);
+                const resp = await fetch(`${FIREBASE_URL}/series.json`);
                 if (!resp.ok) return;
                 const data = await resp.json();
                 if (!data) return;
-                Object.assign(repsData, data);
+                Object.assign(seriesData, data);
                 const deviceId = getDeviceId();
                 Object.entries(data).forEach(([exerciseId, devices]) => {
                     if (!devices) return;
@@ -1729,7 +1759,7 @@
                     if (devices[deviceId] != null) {
                         card.querySelector('.rep-count').textContent = devices[deviceId];
                     }
-                    renderOtherReps(card, exerciseId);
+                    renderOtherSeries(card, exerciseId);
                 });
             } catch {}
         }
@@ -1839,7 +1869,7 @@
         }
 
         /* ── RESET ── */
-        function resetDay(day) {
+        async function resetDay(day) {
             const cards = document.querySelectorAll(`#exercises-${day} .exercise-card`);
             const patch = {};
             cards.forEach(card => {
@@ -1849,7 +1879,12 @@
             updateProgress(day);
             sortDay(day);
             showToast('Día ' + day + ' reiniciado');
-            fetch(`${FIREBASE_URL}/checks.json`, { method: 'PATCH', body: JSON.stringify(patch) }).catch(() => { });
+            dbStart();
+            try {
+                await fetch(`${FIREBASE_URL}/checks.json`, { method: 'PATCH', body: JSON.stringify(patch) });
+            } catch {} finally {
+                dbEnd();
+            }
         }
 
         function showSaveIndicator() { document.getElementById('save-indicator').classList.add('visible'); }
@@ -1908,7 +1943,7 @@
                 const peso = pesoEl.classList.contains('empty') ? '' : pesoEl.textContent;
                 exercises.push({ dia, id, nombre, series, peso });
             });
-            showSaveIndicator();
+            dbStart();
             try {
                 const r = await fetch(`${FIREBASE_URL}/rutina.json`, {
                     method: 'PUT',
@@ -1919,7 +1954,7 @@
             } catch (err) {
                 showToast('Error al guardar: ' + err.message);
             } finally {
-                hideSaveIndicator();
+                dbEnd();
             }
         }
 
@@ -1932,17 +1967,27 @@
                 if (!data || data.updatedBy === ROUTINE_CLIENT_ID || !data.exercises) return;
                 renderExercisesFromArray(data.exercises);
                 init();
-                const chResp = await fetch(`${FIREBASE_URL}/checks.json`);
-                if (chResp.ok) { const ch = await chResp.json(); if (ch) applyChecks(ch); }
+                dbStart();
+                try {
+                    const chResp = await fetch(`${FIREBASE_URL}/checks.json`);
+                    if (chResp.ok) { const ch = await chResp.json(); if (ch) applyChecks(ch); }
+                } finally {
+                    dbEnd();
+                }
             });
         }
 
         /* ── CHECKS SYNC ── */
-        function pushCheck(id, checked) {
-            fetch(`${FIREBASE_URL}/checks.json`, {
-                method: 'PATCH',
-                body: JSON.stringify({ [id]: checked })
-            }).catch(() => { });
+        async function pushCheck(id, checked) {
+            dbStart();
+            try {
+                await fetch(`${FIREBASE_URL}/checks.json`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ [id]: checked })
+                });
+            } catch {} finally {
+                dbEnd();
+            }
         }
 
         function applyChecks(checksData) {
@@ -2043,13 +2088,18 @@
 
         async function resetToOrigin() {
             document.getElementById('origin-confirm-bar').classList.remove('open');
-            localStorage.removeItem('lsk_last_tab');
-            const csvResp = await fetch('./data.csv');
-            renderExercises(await csvResp.text());
-            init();
-            await saveToFirebase();
-            await fetch(`${FIREBASE_URL}/checks.json`, { method: 'DELETE' });
-            showToast('Datos restaurados al original');
+            dbStart();
+            try {
+                localStorage.removeItem('lsk_last_tab');
+                const csvResp = await fetch('./data.csv');
+                renderExercises(await csvResp.text());
+                init();
+                await saveToFirebase();
+                await fetch(`${FIREBASE_URL}/checks.json`, { method: 'DELETE' });
+                showToast('Datos restaurados al original');
+            } finally {
+                dbEnd();
+            }
         }
 
         /* ── FINISH DAY + HISTORY ── */
@@ -2065,7 +2115,7 @@
                     peso: pesoEl.classList.contains('empty') ? 'Peso corporal' : pesoEl.textContent
                 };
             });
-            showSaveIndicator();
+            dbStart();
             try {
                 await fetch(`${FIREBASE_URL}/historial.json`, {
                     method: 'POST',
@@ -2077,7 +2127,7 @@
                     })
                 });
             } finally {
-                hideSaveIndicator();
+                dbEnd();
             }
         }
 
@@ -2093,6 +2143,7 @@
             if (finishingDay) return;
             finishingDay = true;
             document.getElementById(`finish-confirm-${day}`).classList.remove('open');
+            dbStart();
             try {
                 await saveWorkoutHistory(day);
                 showToast(`Día ${day} guardado ✓`);
@@ -2101,8 +2152,9 @@
                 return;
             } finally {
                 finishingDay = false;
+                dbEnd();
             }
-            resetDay(day);
+            await resetDay(day);
         }
 
         /* ── HISTORIAL ── */
@@ -2118,6 +2170,7 @@
         async function loadHistory() {
             const content = document.getElementById('history-content');
             content.innerHTML = '<div class="history-empty">Cargando…</div>';
+            dbStart();
             try {
                 const resp = await fetch(`${FIREBASE_URL}/historial.json`);
                 if (!resp.ok) throw new Error(resp.status);
@@ -2125,6 +2178,8 @@
                 renderHistory(data);
             } catch {
                 content.innerHTML = '<div class="history-empty">Error al cargar historial.</div>';
+            } finally {
+                dbEnd();
             }
         }
 
@@ -2311,11 +2366,16 @@
             updateTimerUI();
         }
 
-        function pushTimerState(state) {
-            fetch(`${FIREBASE_URL}/timer.json`, {
-                method: 'PUT',
-                body: JSON.stringify({ ...state, updatedBy: TIMER_CLIENT_ID })
-            }).catch(() => { });
+        async function pushTimerState(state) {
+            dbStart();
+            try {
+                await fetch(`${FIREBASE_URL}/timer.json`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ ...state, updatedBy: TIMER_CLIENT_ID })
+                });
+            } catch {} finally {
+                dbEnd();
+            }
         }
 
         function startDisplayLoop() {
@@ -2501,7 +2561,7 @@
         initTimerSync();
         initChecksSync();
         initRoutineSync();
-        initRepsSync();
+        initSeriesSync();
     </script>
 </body>
 
