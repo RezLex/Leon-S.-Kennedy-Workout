@@ -1,0 +1,19 @@
+{
+  "name": "Leon S. Kennedy Workout",
+  "short_name": "LSK Workout",
+  "description": "Rutina de entrenamiento sincronizada en tiempo real",
+  "start_url": "/Leon-S.-Kennedy-Workout/",
+  "scope": "/Leon-S.-Kennedy-Workout/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0d0d",
+  "theme_color": "#e63946",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

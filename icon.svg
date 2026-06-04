@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#0d0d0d"/>
+  <rect x="0" y="0" width="512" height="512" rx="80" fill="url(#grad)"/>
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a0000"/>
+      <stop offset="100%" style="stop-color:#2d0000"/>
+    </linearGradient>
+  </defs>
+  <!-- Dumbbell -->
+  <g fill="#e63946">
+    <!-- Left plate outer -->
+    <rect x="60" y="210" width="36" height="92" rx="10"/>
+    <!-- Left plate inner -->
+    <rect x="96" y="224" width="24" height="64" rx="6"/>
+    <!-- Bar -->
+    <rect x="120" y="244" width="272" height="24" rx="8"/>
+    <!-- Right plate inner -->
+    <rect x="392" y="224" width="24" height="64" rx="6"/>
+    <!-- Right plate outer -->
+    <rect x="416" y="210" width="36" height="92" rx="10"/>
+  </g>
+  <!-- LSK text -->
+  <text x="256" y="400" font-family="Arial,sans-serif" font-weight="900" font-size="72" fill="#e63946" text-anchor="middle" letter-spacing="8">LSK</text>
+</svg>
