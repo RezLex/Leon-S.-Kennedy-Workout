@@ -1501,13 +1501,13 @@
         async function fetchAndRenderData(csvFallback = './data.csv') {
             showSpinner();
             try {
-                const fbResp = await fetch(`${FIREBASE_URL}/rutina.json`);
+                const fbResp = await fetch(fbUrl('/rutina.json'));
                 if (fbResp.ok) {
                     const fbData = await fbResp.json();
                     if (fbData && fbData.exercises && fbData.exercises.length > 0) {
                         renderExercisesFromArray(fbData.exercises);
                         init();
-                        const chResp = await fetch(`${FIREBASE_URL}/checks.json`);
+                        const chResp = await fetch(fbUrl('/checks.json'));
                         if (chResp.ok) { const ch = await chResp.json(); if (ch) applyChecks(ch); }
                         await fetchAndApplySeries();
                         routineInitialized = true;
@@ -1661,7 +1661,7 @@
                 card.querySelector('.rep-count').textContent = '0';
                 card.querySelector('.rep-others').textContent = '';
                 dbStart();
-                fetch(`${FIREBASE_URL}/series/${card.dataset.id}.json`, { method: 'DELETE' })
+                fetch(fbUrl(`/series/${card.dataset.id}.json`), { method: 'DELETE' })
                     .catch(() => {}).finally(() => dbEnd());
             }
         }
@@ -1691,7 +1691,7 @@
             seriesData[id][getDeviceId()] = next;
             dbStart();
             try {
-                await fetch(`${FIREBASE_URL}/series/${id}/${getDeviceId()}.json`, {
+                await fetch(fbUrl(`/series/${id}/${getDeviceId()}.json`), {
                     method: 'PUT',
                     body: JSON.stringify(next)
                 });
@@ -1713,13 +1713,14 @@
         }
 
         function initSeriesSync() {
-            const src = new EventSource(`${FIREBASE_URL}/series.json`);
-            src.addEventListener('put', e => {
+            if (_seriesES) _seriesES.close();
+            _seriesES = new EventSource(fbUrl('/series.json'));
+            _seriesES.addEventListener('put', e => {
                 const msg = JSON.parse(e.data);
                 if (!msg.data) { Object.keys(seriesData).forEach(k => delete seriesData[k]); return; }
                 Object.assign(seriesData, msg.data);
             });
-            src.addEventListener('patch', e => {
+            _seriesES.addEventListener('patch', e => {
                 const msg = JSON.parse(e.data);
                 if (!msg.data) return;
                 const deviceId = getDeviceId();
@@ -1749,7 +1750,7 @@
 
         async function fetchAndApplySeries() {
             try {
-                const resp = await fetch(`${FIREBASE_URL}/series.json`);
+                const resp = await fetch(fbUrl('/series.json'));
                 if (!resp.ok) return;
                 const data = await resp.json();
                 if (!data) return;
@@ -1884,7 +1885,7 @@
             showToast('Día ' + day + ' reiniciado');
             dbStart();
             try {
-                await fetch(`${FIREBASE_URL}/checks.json`, { method: 'PATCH', body: JSON.stringify(patch) });
+                await fetch(fbUrl('/checks.json'), { method: 'PATCH', body: JSON.stringify(patch) });
             } catch {} finally {
                 dbEnd();
             }
@@ -1930,8 +1931,47 @@
 
         /* ── FIREBASE SYNC ── */
         const FIREBASE_URL = 'https://leon-kennedy-workout-default-rtdb.firebaseio.com';
+        const FIREBASE_API_KEY = 'AIzaSyAQ_V7kinV92O2uCWSAavlKG2LR9Mr9_oQ';
         const ROUTINE_CLIENT_ID = Math.random().toString(36).slice(2, 8);
         let routineInitialized = false;
+
+        let _fbToken = null;
+        let _fbRefreshToken = null;
+        let _seriesES = null, _routineES = null, _checksES = null;
+
+        const fbUrl = path => `${FIREBASE_URL}${path}?auth=${_fbToken}`;
+
+        async function initFirebaseAuth() {
+            const resp = await fetch(
+                `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_API_KEY}`,
+                { method: 'POST', body: JSON.stringify({ returnSecureToken: true }) }
+            );
+            const data = await resp.json();
+            _fbToken = data.idToken;
+            _fbRefreshToken = data.refreshToken;
+            setTimeout(_refreshFbToken, 55 * 60 * 1000);
+        }
+
+        async function _refreshFbToken() {
+            try {
+                const resp = await fetch(
+                    `https://securetoken.googleapis.com/v1/token?key=${FIREBASE_API_KEY}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `grant_type=refresh_token&refresh_token=${_fbRefreshToken}`
+                    }
+                );
+                const data = await resp.json();
+                _fbToken = data.id_token;
+                _fbRefreshToken = data.refresh_token;
+                initSeriesSync();
+                initRoutineSync();
+                initChecksSync();
+                initTimerSync();
+            } catch {}
+            setTimeout(_refreshFbToken, 55 * 60 * 1000);
+        }
 
         async function saveToFirebase() {
             const exercises = [];
@@ -1948,7 +1988,7 @@
             });
             dbStart();
             try {
-                const r = await fetch(`${FIREBASE_URL}/rutina.json`, {
+                const r = await fetch(fbUrl('/rutina.json'), {
                     method: 'PUT',
                     body: JSON.stringify({ exercises, updatedBy: ROUTINE_CLIENT_ID })
                 });
@@ -1962,8 +2002,9 @@
         }
 
         function initRoutineSync() {
-            const src = new EventSource(`${FIREBASE_URL}/rutina.json`);
-            src.addEventListener('put', async e => {
+            if (_routineES) _routineES.close();
+            _routineES = new EventSource(fbUrl('/rutina.json'));
+            _routineES.addEventListener('put', async e => {
                 if (!routineInitialized) return;
                 const msg = JSON.parse(e.data);
                 const data = msg.data;
@@ -1972,7 +2013,7 @@
                 init();
                 dbStart();
                 try {
-                    const chResp = await fetch(`${FIREBASE_URL}/checks.json`);
+                    const chResp = await fetch(fbUrl('/checks.json'));
                     if (chResp.ok) { const ch = await chResp.json(); if (ch) applyChecks(ch); }
                 } finally {
                     dbEnd();
@@ -1984,7 +2025,7 @@
         async function pushCheck(id, checked) {
             dbStart();
             try {
-                await fetch(`${FIREBASE_URL}/checks.json`, {
+                await fetch(fbUrl('/checks.json'), {
                     method: 'PATCH',
                     body: JSON.stringify({ [id]: checked })
                 });
@@ -2009,12 +2050,13 @@
         }
 
         function initChecksSync() {
-            const src = new EventSource(`${FIREBASE_URL}/checks.json`);
-            src.addEventListener('put', e => {
+            if (_checksES) _checksES.close();
+            _checksES = new EventSource(fbUrl('/checks.json'));
+            _checksES.addEventListener('put', e => {
                 const msg = JSON.parse(e.data);
                 if (msg.data) applyChecks(msg.data);
             });
-            src.addEventListener('patch', e => {
+            _checksES.addEventListener('patch', e => {
                 const msg = JSON.parse(e.data);
                 if (msg.data) applyChecks(msg.data);
             });
@@ -2098,7 +2140,7 @@
                 renderExercises(await csvResp.text());
                 init();
                 await saveToFirebase();
-                await fetch(`${FIREBASE_URL}/checks.json`, { method: 'DELETE' });
+                await fetch(fbUrl('/checks.json'), { method: 'DELETE' });
                 showToast('Datos restaurados al original');
             } finally {
                 dbEnd();
@@ -2120,7 +2162,7 @@
             });
             dbStart();
             try {
-                await fetch(`${FIREBASE_URL}/historial.json`, {
+                await fetch(fbUrl('/historial.json'), {
                     method: 'POST',
                     body: JSON.stringify({
                         fecha: new Date().toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' }),
@@ -2175,7 +2217,7 @@
             content.innerHTML = '<div class="history-empty">Cargando…</div>';
             dbStart();
             try {
-                const resp = await fetch(`${FIREBASE_URL}/historial.json`);
+                const resp = await fetch(fbUrl('/historial.json'));
                 if (!resp.ok) throw new Error(resp.status);
                 const data = await resp.json();
                 renderHistory(data);
@@ -2243,12 +2285,12 @@
         async function syncClock() {
             try {
                 const t1 = Date.now();
-                await fetch(`${FIREBASE_URL}/serverTime.json`, {
+                await fetch(fbUrl('/serverTime.json'), {
                     method: 'PUT',
                     body: JSON.stringify({ '.sv': 'timestamp' })
                 });
                 const t2 = Date.now();
-                const resp = await fetch(`${FIREBASE_URL}/serverTime.json`);
+                const resp = await fetch(fbUrl('/serverTime.json'));
                 const serverTime = await resp.json();
                 clockOffset = serverTime - Math.round((t1 + t2) / 2);
             } catch (e) { clockOffset = 0; }
@@ -2372,7 +2414,7 @@
         async function pushTimerState(state) {
             dbStart();
             try {
-                await fetch(`${FIREBASE_URL}/timer.json`, {
+                await fetch(fbUrl('/timer.json'), {
                     method: 'PUT',
                     body: JSON.stringify({ ...state, updatedBy: TIMER_CLIENT_ID })
                 });
@@ -2447,7 +2489,7 @@
 
         function initTimerSync() {
             if (timerEventSource) timerEventSource.close();
-            timerEventSource = new EventSource(`${FIREBASE_URL}/timer.json`);
+            timerEventSource = new EventSource(fbUrl('/timer.json'));
             timerEventSource.addEventListener('put', e => {
                 const msg = JSON.parse(e.data);
                 const data = msg.data;
@@ -2559,12 +2601,14 @@
         }
 
         // INICIAR
-        syncClock();
-        fetchAndRenderData();
-        initTimerSync();
-        initChecksSync();
-        initRoutineSync();
-        initSeriesSync();
+        initFirebaseAuth().then(() => {
+            syncClock();
+            fetchAndRenderData();
+            initTimerSync();
+            initChecksSync();
+            initRoutineSync();
+            initSeriesSync();
+        });
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js');
