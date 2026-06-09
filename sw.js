@@ -1,8 +1,8 @@
-const CACHE = 'lsk-v3';
-const PRECACHE = ['./index.html', './data.csv', './icon.svg', './manifest.json', './icon-192.png', './icon-512.png'];
+const CACHE = 'lsk-v4';
+const ASSETS = ['./data.csv', './icon.svg', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
-    e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)));
+    e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
     self.skipWaiting();
 });
 
@@ -12,4 +12,17 @@ self.addEventListener('activate', e => {
     ));
     self.clients.claim();
 });
-// Sin fetch handler: todas las peticiones van directo a la red sin pasar por el SW
+
+self.addEventListener('fetch', e => {
+    // HTML y Firebase: siempre red, sin caché
+    if (e.request.mode === 'navigate' ||
+        e.request.url.includes('firebaseio.com') ||
+        e.request.url.includes('googleapis.com')) {
+        e.respondWith(fetch(e.request, { cache: 'no-cache' }));
+        return;
+    }
+    // Activos estáticos: caché primero
+    e.respondWith(
+        caches.match(e.request).then(cached => cached || fetch(e.request))
+    );
+});
