@@ -1941,30 +1941,46 @@
 
         const fbUrl = path => `${FIREBASE_URL}${path}?auth=${_fbToken}`;
 
+        async function _exchangeRefreshToken(refreshToken) {
+            const resp = await fetch(
+                `https://securetoken.googleapis.com/v1/token?key=${FIREBASE_API_KEY}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `grant_type=refresh_token&refresh_token=${refreshToken}`
+                }
+            );
+            const data = await resp.json();
+            if (!data.id_token) throw new Error('refresh failed');
+            _fbToken = data.id_token;
+            _fbRefreshToken = data.refresh_token;
+            localStorage.setItem('lsk_fb_refresh', data.refresh_token);
+        }
+
         async function initFirebaseAuth() {
+            const stored = localStorage.getItem('lsk_fb_refresh');
+            if (stored) {
+                try {
+                    await _exchangeRefreshToken(stored);
+                    setTimeout(_refreshFbToken, 55 * 60 * 1000);
+                    return;
+                } catch {}
+            }
             const resp = await fetch(
                 `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_API_KEY}`,
                 { method: 'POST', body: JSON.stringify({ returnSecureToken: true }) }
             );
             const data = await resp.json();
+            if (!data.idToken) throw new Error('anonymous sign-in failed');
             _fbToken = data.idToken;
             _fbRefreshToken = data.refreshToken;
+            localStorage.setItem('lsk_fb_refresh', data.refreshToken);
             setTimeout(_refreshFbToken, 55 * 60 * 1000);
         }
 
         async function _refreshFbToken() {
             try {
-                const resp = await fetch(
-                    `https://securetoken.googleapis.com/v1/token?key=${FIREBASE_API_KEY}`,
-                    {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: `grant_type=refresh_token&refresh_token=${_fbRefreshToken}`
-                    }
-                );
-                const data = await resp.json();
-                _fbToken = data.id_token;
-                _fbRefreshToken = data.refresh_token;
+                await _exchangeRefreshToken(_fbRefreshToken);
                 initSeriesSync();
                 initRoutineSync();
                 initChecksSync();
@@ -2608,6 +2624,12 @@
             initChecksSync();
             initRoutineSync();
             initSeriesSync();
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && routineInitialized) {
+                fetchAndApplySeries();
+            }
         });
 
         if ('serviceWorker' in navigator) {
