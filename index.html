@@ -1515,6 +1515,7 @@
                         if (chResp.ok) { const ch = await chResp.json(); if (ch) applyChecks(ch); }
                         await fetchAndApplySeries();
                         routineInitialized = true;
+                        setTimeout(fetchAndApplySeries, 1000);
                         return;
                     }
                 }
