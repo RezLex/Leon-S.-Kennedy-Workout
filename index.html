@@ -1501,7 +1501,11 @@
         async function fetchAndRenderData(csvFallback = './data.csv') {
             showSpinner();
             try {
-                const fbResp = await fetch(fbUrl('/rutina.json'));
+                let fbResp = await fetch(fbUrl('/rutina.json'));
+                if (!fbResp.ok) {
+                    await new Promise(r => setTimeout(r, 1500));
+                    fbResp = await fetch(fbUrl('/rutina.json'));
+                }
                 if (fbResp.ok) {
                     const fbData = await fbResp.json();
                     if (fbData && fbData.exercises && fbData.exercises.length > 0) {
