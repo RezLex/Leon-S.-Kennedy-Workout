@@ -1937,7 +1937,11 @@
         /* ── FIREBASE SYNC ── */
         const FIREBASE_URL = 'https://leon-kennedy-workout-default-rtdb.firebaseio.com';
         const FIREBASE_API_KEY = 'AIzaSyAQ_V7kinV92O2uCWSAavlKG2LR9Mr9_oQ';
-        const ROUTINE_CLIENT_ID = Math.random().toString(36).slice(2, 8);
+        const ROUTINE_CLIENT_ID = (() => {
+            let id = localStorage.getItem('lsk_routine_client_id');
+            if (!id) { id = Math.random().toString(36).slice(2, 8); localStorage.setItem('lsk_routine_client_id', id); }
+            return id;
+        })();
         let routineInitialized = false;
 
         let _fbToken = null;
@@ -2039,6 +2043,7 @@
                 } finally {
                     dbEnd();
                 }
+                await fetchAndApplySeries();
             });
         }
 
