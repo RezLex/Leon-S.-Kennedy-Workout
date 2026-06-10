@@ -1702,9 +1702,9 @@
             seriesData[id][getDeviceId()] = next;
             dbStart();
             try {
-                await fetch(fbUrl(`/series/${id}/${getDeviceId()}.json`), {
-                    method: 'PUT',
-                    body: JSON.stringify(next)
+                await fetch(fbUrl(`/series/${id}.json`), {
+                    method: 'PATCH',
+                    body: JSON.stringify({ [getDeviceId()]: next })
                 });
             } catch {} finally {
                 dbEnd();
@@ -1726,31 +1726,39 @@
         function initSeriesSync() {
             if (_seriesES) _seriesES.close();
             _seriesES = new EventSource(fbUrl('/series.json'));
-            _seriesES.addEventListener('put', e => {
-                const msg = JSON.parse(e.data);
-                if (!msg.data) { Object.keys(seriesData).forEach(k => delete seriesData[k]); return; }
-                Object.assign(seriesData, msg.data);
-            });
-            _seriesES.addEventListener('patch', e => {
-                const msg = JSON.parse(e.data);
-                if (msg.data == null) return;
+
+            function applySeriesEvent(path, data) {
+                const parts = (path || '/').split('/').filter(Boolean);
                 const deviceId = getDeviceId();
 
-                // Firebase sends: { path: "/{exerciseId}/{sendingDeviceId}", data: count }
-                const parts = (msg.path || '/').split('/').filter(Boolean);
+                // Normalize any path depth to { exerciseId: { deviceId: count } }
+                let updates;
+                if (parts.length === 0) {
+                    // Root: initial load or full replacement
+                    if (!data) { Object.keys(seriesData).forEach(k => delete seriesData[k]); return; }
+                    updates = data;
+                } else if (parts.length === 1) {
+                    // Exercise level: { deviceId: count }
+                    if (data === null) { delete seriesData[parts[0]]; return; }
+                    updates = { [parts[0]]: data };
+                } else if (parts.length === 2) {
+                    // Leaf: single counter value
+                    updates = { [parts[0]]: { [parts[1]]: data } };
+                } else { return; }
 
-                if (parts.length === 2) {
-                    // Single device counter changed — most common case (changeSeries)
-                    const [exerciseId, sendingDeviceId] = parts;
-                    if (!seriesData[exerciseId]) seriesData[exerciseId] = {};
-                    seriesData[exerciseId][sendingDeviceId] = msg.data;
+                Object.entries(updates).forEach(([exerciseId, devices]) => {
+                    if (devices === null) { delete seriesData[exerciseId]; return; }
+                    seriesData[exerciseId] = Object.assign(seriesData[exerciseId] || {}, devices);
 
                     const card = document.querySelector(`.exercise-card[data-id="${exerciseId}"]`);
                     if (!card || !card.classList.contains('in-progress')) return;
 
-                    if (sendingDeviceId === deviceId) {
-                        card.querySelector('.rep-count').textContent = msg.data;
-                    } else {
+                    if (devices[deviceId] != null) {
+                        card.querySelector('.rep-count').textContent = devices[deviceId];
+                    }
+
+                    const fromOther = Object.keys(devices).some(dev => dev !== deviceId);
+                    if (fromOther) {
                         renderOtherSeries(card, exerciseId);
                         const othersEl = card.querySelector('.rep-others');
                         othersEl.classList.remove('pulse');
@@ -1758,19 +1766,17 @@
                         othersEl.classList.add('pulse');
                         othersEl.addEventListener('animationend', () => othersEl.classList.remove('pulse'), { once: true });
                     }
-                } else if (parts.length === 1) {
-                    // Exercise-level replacement: { path: "/{exerciseId}", data: { deviceId: count } }
-                    const exerciseId = parts[0];
-                    if (msg.data === null) { delete seriesData[exerciseId]; return; }
-                    seriesData[exerciseId] = Object.assign(seriesData[exerciseId] || {}, msg.data);
+                });
+            }
 
-                    const card = document.querySelector(`.exercise-card[data-id="${exerciseId}"]`);
-                    if (!card || !card.classList.contains('in-progress')) return;
-                    if (msg.data[deviceId] != null) {
-                        card.querySelector('.rep-count').textContent = msg.data[deviceId];
-                    }
-                    renderOtherSeries(card, exerciseId);
-                }
+            _seriesES.addEventListener('put', e => {
+                const msg = JSON.parse(e.data);
+                applySeriesEvent(msg.path, msg.data);
+            });
+            _seriesES.addEventListener('patch', e => {
+                const msg = JSON.parse(e.data);
+                if (msg.data == null) return;
+                applySeriesEvent(msg.path, msg.data);
             });
         }
 
@@ -1956,7 +1962,7 @@
         }
 
         /* ── FIREBASE SYNC ── */
-        const APP_VERSION = '1.0.2';
+        const APP_VERSION = '1.0.3';
         const FIREBASE_URL = 'https://leon-kennedy-workout-default-rtdb.firebaseio.com';
         const FIREBASE_API_KEY = 'AIzaSyAQ_V7kinV92O2uCWSAavlKG2LR9Mr9_oQ';
         const ROUTINE_CLIENT_ID = (() => {
