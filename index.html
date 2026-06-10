@@ -1733,29 +1733,44 @@
             });
             _seriesES.addEventListener('patch', e => {
                 const msg = JSON.parse(e.data);
-                if (!msg.data) return;
+                if (msg.data == null) return;
                 const deviceId = getDeviceId();
-                Object.entries(msg.data).forEach(([id, devices]) => {
-                    if (devices === null) { delete seriesData[id]; return; }
-                    seriesData[id] = Object.assign(seriesData[id] || {}, devices);
 
-                    const card = document.querySelector(`.exercise-card[data-id="${id}"]`);
+                // Firebase sends: { path: "/{exerciseId}/{sendingDeviceId}", data: count }
+                const parts = (msg.path || '/').split('/').filter(Boolean);
+
+                if (parts.length === 2) {
+                    // Single device counter changed — most common case (changeSeries)
+                    const [exerciseId, sendingDeviceId] = parts;
+                    if (!seriesData[exerciseId]) seriesData[exerciseId] = {};
+                    seriesData[exerciseId][sendingDeviceId] = msg.data;
+
+                    const card = document.querySelector(`.exercise-card[data-id="${exerciseId}"]`);
                     if (!card || !card.classList.contains('in-progress')) return;
 
-                    if (devices[deviceId] != null) {
-                        card.querySelector('.rep-count').textContent = devices[deviceId];
-                    }
-
-                    const fromOther = Object.keys(devices).some(dev => dev !== deviceId);
-                    if (fromOther) {
-                        renderOtherSeries(card, id);
+                    if (sendingDeviceId === deviceId) {
+                        card.querySelector('.rep-count').textContent = msg.data;
+                    } else {
+                        renderOtherSeries(card, exerciseId);
                         const othersEl = card.querySelector('.rep-others');
                         othersEl.classList.remove('pulse');
                         void othersEl.offsetWidth;
                         othersEl.classList.add('pulse');
                         othersEl.addEventListener('animationend', () => othersEl.classList.remove('pulse'), { once: true });
                     }
-                });
+                } else if (parts.length === 1) {
+                    // Exercise-level replacement: { path: "/{exerciseId}", data: { deviceId: count } }
+                    const exerciseId = parts[0];
+                    if (msg.data === null) { delete seriesData[exerciseId]; return; }
+                    seriesData[exerciseId] = Object.assign(seriesData[exerciseId] || {}, msg.data);
+
+                    const card = document.querySelector(`.exercise-card[data-id="${exerciseId}"]`);
+                    if (!card || !card.classList.contains('in-progress')) return;
+                    if (msg.data[deviceId] != null) {
+                        card.querySelector('.rep-count').textContent = msg.data[deviceId];
+                    }
+                    renderOtherSeries(card, exerciseId);
+                }
             });
         }
 
@@ -1941,7 +1956,7 @@
         }
 
         /* ── FIREBASE SYNC ── */
-        const APP_VERSION = '1.0.1';
+        const APP_VERSION = '1.0.2';
         const FIREBASE_URL = 'https://leon-kennedy-workout-default-rtdb.firebaseio.com';
         const FIREBASE_API_KEY = 'AIzaSyAQ_V7kinV92O2uCWSAavlKG2LR9Mr9_oQ';
         const ROUTINE_CLIENT_ID = (() => {
