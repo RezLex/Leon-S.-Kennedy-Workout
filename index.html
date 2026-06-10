@@ -1941,7 +1941,7 @@
         }
 
         /* ── FIREBASE SYNC ── */
-        const APP_VERSION = '1.0.0';
+        const APP_VERSION = '1.0.1';
         const FIREBASE_URL = 'https://leon-kennedy-workout-default-rtdb.firebaseio.com';
         const FIREBASE_API_KEY = 'AIzaSyAQ_V7kinV92O2uCWSAavlKG2LR9Mr9_oQ';
         const ROUTINE_CLIENT_ID = (() => {
@@ -2645,10 +2645,18 @@
             initSeriesSync();
         });
 
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible' && routineInitialized) {
-                fetchAndApplySeries();
-            }
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState !== 'visible' || !routineInitialized) return;
+            try { await _exchangeRefreshToken(_fbRefreshToken); } catch {}
+            initSeriesSync();
+            initChecksSync();
+            initTimerSync();
+            initRoutineSync();
+            try {
+                const chResp = await fetch(fbUrl('/checks.json'));
+                if (chResp.ok) { const ch = await chResp.json(); if (ch) applyChecks(ch); }
+            } catch {}
+            await fetchAndApplySeries();
         });
 
         if ('serviceWorker' in navigator) {
