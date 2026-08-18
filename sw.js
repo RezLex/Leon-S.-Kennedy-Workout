@@ -1,5 +1,5 @@
-const CACHE = 'lsk-v5';
-const ASSETS = ['./data.csv', './icon.svg', './manifest.json', './icon-192.png', './icon-512.png'];
+const CACHE = 'lsk-v6';
+const ASSETS = ['./data.csv', './icon.svg', './manifest.json?v=2', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
     e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
