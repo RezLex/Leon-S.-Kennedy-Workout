@@ -1,4 +1,4 @@
-const CACHE = 'lsk-v4';
+const CACHE = 'lsk-v5';
 const ASSETS = ['./data.csv', './icon.svg', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
