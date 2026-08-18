@@ -2039,7 +2039,7 @@
         }
 
         /* ── FIREBASE SYNC ── */
-        const APP_VERSION = '1.0.6';
+        const APP_VERSION = '1.0.7';
         const FIREBASE_URL = 'https://leon-kennedy-workout-default-rtdb.firebaseio.com';
         const FIREBASE_API_KEY = 'AIzaSyAQ_V7kinV92O2uCWSAavlKG2LR9Mr9_oQ';
         const GOOGLE_CLIENT_ID = '805188359205-c9ihpgdoc3unm56fpsnfnijqmbjer87f.apps.googleusercontent.com';
@@ -2060,7 +2060,8 @@
 
         function decodeJwt(token) {
             try {
-                const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+                let payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+                while (payload.length % 4) payload += '=';
                 const json = decodeURIComponent(atob(payload).split('').map(c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0')).join(''));
                 return JSON.parse(json);
             } catch {
