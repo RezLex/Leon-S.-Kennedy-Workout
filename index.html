@@ -38,6 +38,11 @@
             padding-bottom: 32px;
         }
 
+        body.login-locked {
+            overflow: hidden;
+            height: 100dvh;
+        }
+
         /* ── HEADER ── */
         header {
             background: linear-gradient(135deg, #1a0000 0%, #2d0000 50%, #1a0000 100%);
@@ -1329,7 +1334,7 @@
     </style>
 </head>
 
-<body>
+<body class="login-locked">
 
     <div id="login-screen" class="visible">
         <h1>Leon S. Kennedy</h1>
@@ -2039,7 +2044,7 @@
         }
 
         /* ── FIREBASE SYNC ── */
-        const APP_VERSION = '1.0.7';
+        const APP_VERSION = '1.0.8';
         const FIREBASE_URL = 'https://leon-kennedy-workout-default-rtdb.firebaseio.com';
         const FIREBASE_API_KEY = 'AIzaSyAQ_V7kinV92O2uCWSAavlKG2LR9Mr9_oQ';
         const GOOGLE_CLIENT_ID = '805188359205-c9ihpgdoc3unm56fpsnfnijqmbjer87f.apps.googleusercontent.com';
@@ -2076,6 +2081,7 @@
         /* ── LOGIN SCREEN ── */
         function showLoginScreen(errorMsg) {
             document.getElementById('login-screen').classList.add('visible');
+            document.body.classList.add('login-locked');
             const errEl = document.getElementById('login-error');
             if (errorMsg) {
                 errEl.textContent = errorMsg;
@@ -2087,6 +2093,7 @@
 
         function hideLoginScreen() {
             document.getElementById('login-screen').classList.remove('visible');
+            document.body.classList.remove('login-locked');
         }
 
         function waitForGoogleSDK() {
